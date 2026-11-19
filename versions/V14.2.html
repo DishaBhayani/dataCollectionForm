@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Social Discernment Test (V14.2: pop-up and bottom panel)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Lato:wght@300;400&display=swap">
+<style>
+  :root {
+    --fia-charcoal: #454545;
+    --fia-grey:     #E0E0E0;
+    --fia-pink:     #E487B7;
+    --fia-lime:     #B2BF56;
+    --fia-text:     #000000;
+    --fia-ground:   #FAF8F5;
+    --fia-card:     #FFFFFF;
+    --fia-error:    #A3002F;
+    --fia-head: "Poppins", "Helvetica Neue", Arial, sans-serif;
+    --fia-body: "Lato", "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+  }
+  * { box-sizing: inherit; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; padding: 0; background: var(--fia-ground); color: var(--fia-text); }
+  body {
+    font-family: var(--fia-body);
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(90px, env(safe-area-inset-bottom, 0px));
+  }
+  body.hl-on { padding-bottom: 170px; }
+  .app { width: 100%; max-width: 800px; }
+
+  h1, h2, h3, h4 { font-family: var(--fia-head); font-weight: 500; color: var(--fia-text); line-height: 1.25; margin: 0 0 12px 0; text-align: left; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 19px; }
+  h3 { font-size: 15px; margin-bottom: 8px; }
+  h4 { font-size: 14px; margin-bottom: 10px; }
+  p { font-size: 17px; line-height: 1.7; margin: 0 0 16px 0; text-align: left; }
+
+  /* ---------- Progress ---------- */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-text { font-family: var(--fia-head); font-weight: 500; font-size: 13px; color: var(--fia-charcoal); margin-bottom: 6px; }
+  .progress-track { display: flex; gap: 6px; }
+  .progress-seg { flex: 1; height: 6px; border-radius: 999px; background: var(--fia-grey); }
+  .progress-seg.filled { background: var(--fia-charcoal); }
+
+  .instruction { font-family: var(--fia-head); font-weight: 500; font-size: 16px; margin-bottom: 6px; }
+  .hint { font-size: 14px; color: var(--fia-charcoal); margin: 0 0 14px 0; line-height: 1.5; }
+  .empty-hint { font-style: italic; font-size: 14px; color: var(--fia-charcoal); margin: 0 0 12px 0; line-height: 1.5; }
+
+  /* ---------- Passage ---------- */
+  .scenario-card {
+    background: var(--fia-card);
+    border: 1px solid var(--fia-grey);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 26px;
+    scroll-margin-top: 16px;
+  }
+  .scenario-card.hl-active { border: 2px solid var(--hl-solid); padding: 19px 23px; }
+  .hl-banner {
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--hl-tint);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .scenario-title { font-family: var(--fia-head); font-weight: 500; font-size: 18px; margin-bottom: 16px; }
+  .scenario-card p { font-size: 17px; line-height: 1.75; margin: 0 0 16px 0; }
+  .scenario-card p:last-child { margin-bottom: 0; }
+  .seg { border-radius: 4px; padding: 2px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .seg.cited { text-decoration: underline dotted var(--fia-charcoal); text-underline-offset: 5px; text-decoration-thickness: 1.5px; }
+  .seg.tappable { cursor: pointer; }
+  .seg.tappable:hover { background: #F1EDE7; }
+  .seg.tappable.pending { background: var(--hl-tint); box-shadow: inset 0 -2px 0 var(--hl-solid); }
+  .seg:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 1px; }
+
+  /* ---------- Question cards ---------- */
+  .qcard {
+    background: var(--fia-card);
+    border: 1px solid var(--fia-grey);
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    scroll-margin-top: 16px;
+  }
+  .qcard.needs-answer { border-color: var(--fia-error); }
+  .q-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .q-num { font-family: var(--fia-head); font-weight: 500; font-size: 13px; color: var(--fia-charcoal); }
+  .q-status { font-family: var(--fia-head); font-weight: 500; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--fia-grey); color: var(--fia-charcoal); white-space: nowrap; }
+  .q-status.done { background: var(--fia-lime); border-color: var(--fia-lime); color: var(--fia-text); }
+  .q-text { font-weight: 400; font-size: 17px; line-height: 1.6; margin-bottom: 8px; }
+  .q-error { font-size: 14px; color: var(--fia-error); margin: 0 0 12px 0; }
+
+  .item-card {
+    background: var(--fia-ground);
+    border: 1px solid var(--fia-grey);
+    border-left: 6px solid var(--c);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    scroll-margin-top: 90px;
+  }
+  .small-label { display: block; font-family: var(--fia-head); font-weight: 500; font-size: 12px; color: var(--fia-charcoal); margin-bottom: 4px; }
+  .quote { font-style: italic; font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+  .quote-hl { background: var(--t); border-radius: 3px; padding: 1px 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .item-actions { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--c); border: 1px solid rgba(0,0,0,0.18); margin-right: 8px; vertical-align: -1px; flex: none; }
+
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--fia-text);
+    background: var(--fia-card);
+    border: 1.5px solid var(--fia-charcoal);
+    border-radius: 999px;
+    padding: 9px 18px;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .add-btn:hover { background: var(--fia-ground); }
+  .add-btn:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  .text-link-btn {
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--fia-charcoal);
+    background: none;
+    border: none;
+    padding: 2px 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .text-link-btn:hover { color: var(--fia-text); }
+  .text-link-btn:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  /* ---------- Fields ---------- */
+  .field { margin-bottom: 16px; }
+  .field-label { font-family: var(--fia-head); font-weight: 500; font-size: 14px; display: block; margin-bottom: 6px; line-height: 1.45; }
+  textarea {
+    width: 100%;
+    min-height: 88px;
+    font-family: var(--fia-body);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--fia-text);
+    background: var(--fia-card);
+    border: 1px solid var(--fia-grey);
+    border-radius: 12px;
+    padding: 12px 14px;
+    resize: vertical;
+    display: block;
+  }
+  .qcard > .field textarea, .compare-conclusion textarea { background: var(--fia-ground); }
+  textarea:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  textarea::placeholder { color: var(--fia-charcoal); }
+
+  .mic-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; min-height: 34px; }
+  .mic-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--fia-text);
+    background: var(--fia-card);
+    border: 1.5px solid var(--fia-charcoal);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .mic-btn:hover { background: var(--fia-ground); }
+  .mic-btn:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  .mic-btn svg { width: 14px; height: 14px; }
+  .rec-dot { width: 10px; height: 10px; border-radius: 999px; background: var(--fia-error); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+  .rec-time { font-family: var(--fia-head); font-weight: 500; font-size: 13px; color: var(--fia-error); }
+  .voice-note { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--fia-card); border: 1px solid var(--fia-grey); border-radius: 999px; padding: 4px 14px 4px 12px; }
+  .voice-label { font-family: var(--fia-head); font-weight: 500; font-size: 13px; }
+  .mic-error { flex-basis: 100%; font-size: 14px; color: var(--fia-error); margin: 2px 0 0 0; line-height: 1.45; }
+  .voice-sim { font-size: 13px; color: var(--fia-charcoal); }
+  .voice-note audio { height: 32px; max-width: 220px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--fia-text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1.5px solid var(--fia-charcoal);
+    background: var(--fia-card);
+    cursor: pointer;
+  }
+  .chip:hover { background: var(--fia-ground); }
+  .chip[aria-pressed="true"] { background: var(--t, #F6CFE2); border-color: var(--fia-text); }
+  .chip:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  /* ---------- Compare ---------- */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 6px 0 14px; }
+  @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+  .compare-col {
+    background: var(--fia-ground);
+    border: 1px solid var(--fia-grey);
+    border-top: 6px solid var(--c);
+    border-radius: 12px;
+    padding: 14px 16px 2px;
+    scroll-margin-top: 90px;
+    min-width: 0;
+  }
+  .compare-col h4 { display: flex; align-items: center; }
+  .quote-chip {
+    position: relative;
+    background: var(--t);
+    border-radius: 8px;
+    padding: 8px 36px 8px 12px;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .quote-chip .remove-x {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--fia-charcoal);
+    cursor: pointer;
+    border-radius: 999px;
+  }
+  .quote-chip .remove-x:hover { background: rgba(0,0,0,0.08); color: var(--fia-text); }
+  .quote-chip .remove-x:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 0; }
+  .compare-conclusion { border: 1.5px solid var(--fia-charcoal); border-radius: 12px; padding: 14px 16px 2px; }
+  .compare-conclusion h4 { display: flex; align-items: center; gap: 0; }
+  .join-mark { margin-right: 10px; display: inline-flex; }
+  .join-mark .swatch { margin-right: 3px; }
+
+  .expl-card { background: var(--fia-ground); border: 1px solid var(--fia-grey); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; scroll-margin-top: 90px; }
+  .expl-card .field { margin-bottom: 10px; }
+  .divider { border: 0; border-top: 1px solid var(--fia-grey); margin: 18px 0; }
+
+  /* ---------- Buttons ---------- */
+  .fia-btn {
+    display: inline-block;
+    width: 100%;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 16px;
+    border-radius: 999px;
+    padding: 14px 28px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: filter 0.2s, opacity 0.2s;
+    color: var(--fia-text);
+    background: var(--fia-pink);
+    text-align: center;
+  }
+  .fia-btn:hover:not(:disabled) { filter: brightness(0.95); }
+  .fia-btn:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  .fia-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .fia-btn-outline {
+    display: inline-block;
+    width: 100%;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 16px;
+    border-radius: 999px;
+    padding: 14px 28px;
+    border: 1.5px solid var(--fia-charcoal);
+    cursor: pointer;
+    color: var(--fia-text);
+    background: var(--fia-card);
+    text-align: center;
+  }
+  .fia-btn-outline:hover { border-color: var(--fia-text); background: var(--fia-ground); }
+  .fia-btn-outline:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  .form-error { font-size: 15px; color: var(--fia-error); margin: 0 0 12px 0; }
+
+  /* ---------- Highlight bar ---------- */
+  #hl-bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--fia-card);
+    border-top: 1px solid var(--fia-grey);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+  }
+  #hl-bar .inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #hl-bar .bar-text { flex: 1 1 220px; display: flex; align-items: center; }
+  #hl-bar .bar-title { font-family: var(--fia-head); font-weight: 500; font-size: 14px; line-height: 1.35; }
+  #hl-bar .bar-sub { font-size: 13px; color: var(--fia-charcoal); }
+  #hl-bar .bar-actions { display: flex; gap: 10px; }
+  #hl-bar .bar-actions button { width: auto; padding: 10px 22px; font-size: 15px; }
+
+  /* Continue button: persistent prominence once ready, plus a one-time pulse */
+  #bar-done.is-ready { box-shadow: 0 0 0 4px rgba(228,135,183,0.45); }
+  @keyframes doneAttention {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.12); }
+    65% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+  #bar-done.pulse-once { animation: doneAttention 0.5s ease-in-out; }
+  @media (prefers-reduced-motion: reduce) {
+    #bar-done.pulse-once { animation: none; }
+  }
+
+  /* Guidance bubble, anchored above the bar, pointing toward Continue */
+  .hl-bubble {
+    position: absolute;
+    right: 16px;
+    bottom: 100%;
+    margin-bottom: 10px;
+    max-width: 260px;
+    background: var(--fia-text);
+    color: #FFFFFF;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 10px 14px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    pointer-events: none;
+    z-index: 21;
+  }
+  .hl-bubble::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 28px;
+    width: 0; height: 0;
+    border: 7px solid transparent;
+    border-top-color: var(--fia-text);
+  }
+  @media (max-width: 480px) {
+    .hl-bubble { right: 8px; left: 8px; max-width: none; }
+    .hl-bubble::after { right: 36px; }
+  }
+
+  /* Two-stage indicator: "1. Select text -> 2. Explain your choice" */
+  .stage-indicator { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .stage-indicator .stage {
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 12px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: var(--fia-grey);
+    color: var(--fia-charcoal);
+  }
+  .stage-indicator .stage.active { background: var(--fia-text); color: #FFFFFF; }
+  .stage-indicator .stage-arrow { color: var(--fia-charcoal); font-size: 13px; }
+
+  /* Brief one-time emphasis on the explanation card after continuing */
+  @keyframes itemPulse {
+    0% { box-shadow: 0 0 0 0 rgba(69,69,69,0.35); }
+    55% { box-shadow: 0 0 0 6px rgba(69,69,69,0.12); }
+    100% { box-shadow: 0 0 0 0 rgba(69,69,69,0); }
+  }
+  .item-card.just-opened { animation: itemPulse 1s ease-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .item-card.just-opened { animation: none; box-shadow: 0 0 0 3px rgba(69,69,69,0.3); }
+  }
+
+  .plus-icon { font-weight: 700; margin-right: 6px; }
+
+  /* =========================================================
+     Annotate page (Q2): the story is always ready to highlight
+     ========================================================= */
+  body.wide-page .app { max-width: 1180px; }
+  .annotate { position: relative; margin-bottom: 26px; }
+  .annotate.wide { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start; }
+  .annotate .scenario-card { margin-bottom: 0; }
+  .annotate.wide .notes { position: relative; min-height: 100%; }
+  .annotate.wide .note-card { position: absolute; left: 0; right: 0; margin: 0; transition: top 0.18s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .annotate.wide .note-card { transition: none; } }
+
+  .seg.mark { cursor: pointer; }
+  .seg.marked { background: #FCE9A6; box-shadow: inset 0 -2px 0 #D9B52C; }
+  .seg.marked.linked, .seg.marked:hover { background: #F9DA6E; }
+  .seg.adding-in { background: #F9DA6E; box-shadow: inset 0 -2px 0 #A88A12, 0 0 0 2px #A88A12; }
+  .seg.mark:not(.marked):hover { background: #F1EDE7; }
+  .scenario-card.adding { border: 2px dashed #D9B52C; padding: 19px 23px; }
+
+  .hl-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin: 0 2px 0 3px;
+    border-radius: 999px;
+    background: var(--fia-text);
+    color: #FFFFFF;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1;
+    vertical-align: 2px;
+    cursor: pointer;
+    border: 0;
+  }
+  .hl-num:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  .adding-banner {
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top, 0px));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #FFF6D6;
+    border: 1px solid #D9B52C;
+    border-radius: 12px;
+    padding: 10px 12px 10px 14px;
+    margin-bottom: 16px;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .small-btn {
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--fia-text);
+    background: var(--fia-pink);
+    border: 1.5px solid var(--fia-text);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .small-btn:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  .note-card {
+    background: var(--fia-card);
+    border: 1px solid var(--fia-grey);
+    border-left: 5px solid #D9B52C;
+    border-radius: 12px;
+    padding: 14px 16px 12px;
+    margin: 4px 0 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    scroll-margin-top: 24px;
+    scroll-margin-bottom: 24px;
+  }
+  .scenario-card .note-card { font-size: 16px; }
+  .scenario-card .note-card p { font-size: 14px; line-height: 1.5; margin: 0 0 10px 0; }
+  .scenario-card .note-card p.note-quote { line-height: 1.55; }
+  .scenario-card .note-card p.mic-error { margin: 2px 0 0 0; }
+  .note-card.active { border-color: #D9B52C; box-shadow: 0 0 0 3px rgba(217,181,44,0.25), 0 4px 12px rgba(0,0,0,0.08); }
+  .note-card.adding { border-style: dashed; border-left-style: solid; }
+  .note-card.new { animation: noteIn 0.25s ease-out; }
+  @keyframes noteIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .note-card.new { animation: none; } }
+  .note-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .note-head .hl-num { margin: 0; cursor: default; }
+  .note-head .small-label { margin: 0; }
+  .note-quote {
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--fia-charcoal);
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .note-card .field { margin-bottom: 8px; }
+  .note-card textarea { min-height: 76px; background: var(--fia-ground); }
+  .note-tip { font-size: 13px; color: var(--fia-charcoal); line-height: 1.45; margin: 0 0 10px 0; }
+  .notes-empty {
+    border: 1.5px dashed var(--fia-grey);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--fia-charcoal);
+    background: var(--fia-card);
+  }
+  .notes-empty strong { font-family: var(--fia-head); font-weight: 500; color: var(--fia-text); display: block; margin-bottom: 4px; }
+  .q-compact { margin-bottom: 18px; }
+  .optional-tag { font-family: var(--fia-body); font-weight: 400; font-size: 13px; color: var(--fia-charcoal); margin-left: 6px; }
+  .hint-inline { font-family: var(--fia-body); font-weight: 300; font-size: 13px; color: var(--fia-charcoal); }
+  .demo-field { border: 0; padding: 0; margin: 0 0 18px 0; min-width: 0; }
+  .demo-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .demo-option { position: relative; display: inline-flex; }
+  .demo-option input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .demo-option span {
+    display: inline-block;
+    font-family: var(--fia-head); font-weight: 500; font-size: 14px;
+    padding: 8px 14px; border-radius: 999px;
+    border: 1.5px solid var(--fia-charcoal); background: var(--fia-card); color: var(--fia-text);
+  }
+  .demo-option:hover span { background: var(--fia-ground); }
+  .demo-option input:checked + span { background: var(--fia-pink); border-color: var(--fia-text); }
+  .demo-option input:focus-visible + span { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  .demo-self { margin-top: 10px; max-width: 360px; }
+  .code-card { background: var(--fia-card); border: 1.5px solid var(--fia-charcoal); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
+  .code-label { font-family: var(--fia-head); font-weight: 500; font-size: 13px; color: var(--fia-charcoal); margin: 0 0 4px 0; }
+  .code-value { font-family: var(--fia-head); font-weight: 500; font-size: 28px; letter-spacing: 0.08em; margin: 0 0 8px 0; }
+  .code-note { font-size: 14px; color: var(--fia-charcoal); line-height: 1.5; margin: 0; }
+  .continue-hint { font-size: 14px; color: var(--fia-charcoal); text-align: center; margin: 10px 0 0 0; line-height: 1.45; }
+
+  /* Selection waiting for a decision */
+  .seg.pending { background: #FFF1B8; box-shadow: inset 0 -2px 0 #A88A12; }
+  .seg.blurred { filter: blur(2.5px); opacity: 0.5; transition: filter 0.15s, opacity 0.15s; }
+  .hl-num.blurred { filter: blur(2.5px); opacity: 0.5; }
+
+  /* Chooser: shared */
+  .chooser-count { font-family: var(--fia-head); font-weight: 500; font-size: 14px; margin: 0 0 4px 0; }
+  .chooser-hint { font-size: 13px; color: var(--fia-charcoal); line-height: 1.45; margin: 0 0 12px 0; }
+  .chooser-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .scenario-card .chooser-window p.chooser-count { font-size: 15px; line-height: 1.4; margin: 0 0 4px 0; }
+  .scenario-card .chooser-window p.chooser-hint { font-size: 14px; line-height: 1.45; margin: 0 0 12px 0; }
+  .chooser-actions button { width: auto; flex: 1 1 auto; padding: 10px 16px; font-size: 14px; }
+  .chooser-actions .fia-btn { flex-grow: 1.4; }
+
+  /* Option C: window under the selection */
+  .chooser-window {
+    position: absolute;
+    z-index: 6;
+    width: min(320px, calc(100% - 24px));
+    background: var(--fia-card);
+    border: 1.5px solid var(--fia-charcoal);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+    animation: chooserIn 0.16s ease-out;
+  }
+
+  /* Option A: small pop-up beside the selection (large screens) */
+  .chooser-pop {
+    position: absolute;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--fia-text);
+    color: #FFFFFF;
+    border-radius: 999px;
+    padding: 6px 6px 6px 16px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+    white-space: nowrap;
+    animation: chooserIn 0.16s ease-out;
+  }
+  .chooser-pop::before {
+    content: "";
+    position: absolute;
+    left: var(--caret, 24px);
+    width: 12px; height: 12px;
+    background: var(--fia-text);
+    transform: rotate(45deg);
+  }
+  .chooser-pop.below::before { top: -5px; }
+  .chooser-pop.above::before { bottom: -5px; }
+  .chooser-pop .pop-count { font-family: var(--fia-head); font-weight: 500; font-size: 13px; position: relative; }
+  .chooser-pop button { position: relative; font-family: var(--fia-head); font-weight: 500; font-size: 13px; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  .chooser-pop .pop-more { background: transparent; color: #FFFFFF; border: 1.5px solid rgba(255,255,255,0.6); }
+  .chooser-pop .pop-done { background: var(--fia-pink); color: var(--fia-text); border: 1.5px solid var(--fia-pink); }
+  .chooser-pop button:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+
+  /* Option B: panel sliding up from the bottom (tablets and phones) */
+  .chooser-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 30;
+    background: var(--fia-card);
+    border-top: 1px solid var(--fia-grey);
+    border-radius: 20px 20px 0 0;
+    padding: 10px 18px max(18px, env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 28px rgba(0,0,0,0.16);
+    animation: sheetUp 0.22s ease-out;
+  }
+  .chooser-sheet .sheet-inner { max-width: 640px; margin: 0 auto; }
+  .chooser-sheet .grabber { width: 40px; height: 4px; border-radius: 999px; background: var(--fia-grey); margin: 0 auto 12px; }
+  .chooser-sheet .chooser-actions button { padding: 14px 16px; font-size: 15px; }
+  body.sheet-on { padding-bottom: 220px; }
+  @keyframes chooserIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .chooser-window, .chooser-pop, .chooser-sheet { animation: none; } }
+
+  /* Explanation box: heading, glow, both ways to answer */
+  .note-heading { font-family: var(--fia-head); font-weight: 500; font-size: 16px; line-height: 1.35; margin: 2px 0 4px 0; display: block; }
+  .note-card .field-label.note-heading { font-size: 16px; }
+  .note-card.glow { box-shadow: 0 0 0 4px #FCE388, 0 0 0 6px #D9B52C; transition: box-shadow 0.4s; }
+  .note-card { transition: box-shadow 1.2s; }
+  .note-card .mic-row.idle::before { content: "or"; font-size: 14px; color: var(--fia-charcoal); margin-right: 2px; }
+  .note-card .mic-btn { padding: 8px 16px; font-size: 14px; }
+  .note-status { margin-left: auto; font-family: var(--fia-head); font-weight: 500; font-size: 12px; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .note-status.waiting { background: #FFF1B8; color: #6B5600; }
+  .note-status.saved { background: var(--fia-lime); color: var(--fia-text); }
+
+  /* Inline action pill: appears right after the last selected part of the story */
+  .inline-explain {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    vertical-align: baseline;
+    white-space: nowrap;
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--fia-text);
+    background: var(--fia-pink);
+    border: 1.5px solid var(--fia-text);
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    animation: pillIn 0.2s ease-out;
+  }
+  .inline-explain:hover { filter: brightness(0.95); }
+  .inline-explain:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  @keyframes pillIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .inline-explain { animation: none; } }
+
+  /* ---------- Review ---------- */
+  .review-block { background: var(--fia-card); border: 1px solid var(--fia-grey); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
+  .review-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .review-q { font-size: 15px; line-height: 1.55; color: var(--fia-charcoal); margin-bottom: 14px; }
+  .review-entry { border-left: 4px solid var(--c, var(--fia-grey)); padding: 2px 0 2px 12px; margin-bottom: 14px; }
+  .review-entry:last-child { margin-bottom: 0; }
+  .review-answer { font-size: 15px; line-height: 1.6; margin: 0 0 8px 0; white-space: pre-wrap; }
+  .review-answer.none { color: var(--fia-charcoal); font-style: italic; }
+  .review-voice { margin: 0 0 8px 0; }
+
+  /* ---------- Completion ---------- */
+  .completion-stats { background: var(--fia-card); border: 1px solid var(--fia-grey); border-radius: 16px; padding: 16px 18px; margin-bottom: 20px; }
+  .completion-stats .stat-row { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; margin-bottom: 8px; }
+  .completion-stats .stat-row:last-child { margin-bottom: 0; }
+  .completion-stats .stat-label { color: var(--fia-charcoal); }
+
+  #researcher-fab {
+    position: fixed;
+    left: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    font-family: var(--fia-head);
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--fia-charcoal);
+    background: var(--fia-card);
+    border: 1px dashed var(--fia-charcoal);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  #researcher-fab:hover { color: var(--fia-text); border-color: var(--fia-text); }
+  #researcher-fab:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+
+  /* ---------- Intro ---------- */
+  .intro-kicker { font-family: var(--fia-head); font-weight: 500; font-size: 13px; color: var(--fia-charcoal); margin-bottom: 10px; }
+  .intro h1 { font-size: 26px; margin-bottom: 18px; }
+  .intro-lead { font-size: 19px; line-height: 1.6; max-width: 60ch; }
+  .intro-why { background: var(--fia-card); border: 1px solid var(--fia-grey); border-left: 6px solid var(--fia-pink); border-radius: 16px; padding: 20px 24px; margin: 22px 0 18px; }
+  .intro-why p { max-width: 62ch; }
+  .intro-why p:last-child { margin-bottom: 0; }
+  .intro-steps { list-style: none; padding: 0; margin: 0 0 20px; counter-reset: introstep; }
+  .intro-steps li { counter-increment: introstep; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; font-size: 17px; line-height: 1.6; margin-bottom: 12px; }
+  .intro-steps li::before { content: counter(introstep); font-family: var(--fia-head); font-weight: 500; font-size: 14px; width: 30px; height: 30px; border-radius: 999px; background: var(--fia-lime); display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .intro-steps strong { font-family: var(--fia-head); font-weight: 500; }
+  .intro-notes { background: var(--fia-ground); border: 1px dashed var(--fia-charcoal); border-radius: 14px; padding: 14px 18px; margin-bottom: 22px; }
+  .intro-notes p { font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+  .intro-notes p:last-child { margin-bottom: 0; }
+
+  .intro-form { background: var(--fia-card); border: 1px solid var(--fia-grey); border-radius: 16px; padding: 20px 24px; margin-bottom: 22px; }
+  .intro-form h3 { margin-bottom: 14px; }
+  .intro-form .field { margin-bottom: 18px; }
+  .intro-form .field:last-child { margin-bottom: 0; }
+  .intro-form .field-label, .intro-form legend { font-family: var(--fia-head); font-weight: 500; font-size: 15px; display: block; margin-bottom: 6px; padding: 0; }
+  .text-input { width: 100%; font-family: var(--fia-body); font-weight: 300; font-size: 16px; color: var(--fia-text); background: var(--fia-ground); border: 1px solid var(--fia-grey); border-radius: 14px; padding: 14px; display: block; }
+  .text-input.short { max-width: 160px; text-transform: uppercase; }
+  .text-input::placeholder { color: var(--fia-charcoal); }
+  .text-input:focus-visible { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  .text-input[aria-invalid="true"] { border-color: var(--fia-error); }
+  .intro-form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .group-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .group-option { position: relative; }
+  .group-option input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .group-option span { display: block; text-align: center; font-family: var(--fia-head); font-weight: 500; font-size: 15px; padding: 14px 8px; border: 1.5px solid var(--fia-charcoal); border-radius: 999px; background: var(--fia-card); color: var(--fia-text); transition: background 0.2s, border-color 0.2s; }
+  .group-option:hover span { background: var(--fia-ground); }
+  .group-option input:checked + span { background: var(--fia-pink); border-color: var(--fia-text); }
+  .group-option input:focus-visible + span { outline: 3px solid var(--fia-text); outline-offset: 2px; }
+  @media (max-width: 420px) { .group-options { grid-template-columns: repeat(2, 1fr); } }
+  .error { font-size: 14px; color: var(--fia-error); margin: 6px 0 0 0; line-height: 1.4; }
+  .consent { font-size: 14px; color: var(--fia-charcoal); line-height: 1.5; margin-bottom: 16px; }
+
+  @media (max-width: 480px) {
+    .scenario-card, .qcard { padding: 18px 16px; }
+    .scenario-card.hl-active { padding: 17px 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app-main">
+  <div class="progress-wrap">
+    <div class="progress-text" id="progress-text"></div>
+    <div class="progress-track">
+      <div class="progress-seg" data-seg="1"></div>
+      <div class="progress-seg" data-seg="2"></div>
+      <div class="progress-seg" data-seg="3"></div>
+      <div class="progress-seg" data-seg="4"></div>
+    </div>
+  </div>
+  <div id="step-container"></div>
+</div>
+
+<div class="app" id="screen-complete" hidden>
+  <h2>Thank you. Your response has been recorded.</h2>
+  <div class="code-card">
+    <p class="code-label">Your code</p>
+    <p class="code-value" id="stat-participant"></p>
+    <p class="code-note">Keep this if you might want your answers removed later.</p>
+  </div>
+  <div class="completion-stats">
+    <div class="stat-row"><span class="stat-label">Time spent</span><span id="stat-time"></span></div>
+    <div class="stat-row"><span class="stat-label">Parts highlighted</span><span id="stat-highlights"></span></div>
+    <div class="stat-row"><span class="stat-label">Voice notes recorded</span><span id="stat-voice"></span></div>
+    <div class="stat-row"><span class="stat-label">Saved to Google Sheet</span><span id="stat-saved"></span></div>
+  </div>
+  <button type="button" class="fia-btn-outline" id="download-json" hidden>Researcher: download a backup copy (JSON)</button>
+</div>
+
+<div id="hl-bar" hidden role="region" aria-label="Highlighting">
+  <div class="inner">
+    <div class="bar-text">
+      <span class="swatch" id="bar-swatch"></span>
+      <div>
+        <div class="bar-title" id="bar-title"></div>
+        <div class="bar-sub" id="bar-sub" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="bar-actions">
+      <button type="button" class="fia-btn-outline" id="bar-cancel">Cancel</button>
+      <button type="button" class="fia-btn" id="bar-done">Continue to explanation &rarr;</button>
+    </div>
+    <div id="hl-bubble" class="hl-bubble" hidden role="status" aria-live="polite">Ready? Continue here to explain your selection.</div>
+  </div>
+</div>
+
+<button type="button" id="researcher-fab" hidden>Researcher: Restart</button>
+
+<script>
+  /* V13, 29 October 2026, sponsor edit of Team 1's Prototype A (V12).
+     Two fixed questions for everyone, prediction first, highlighting second.
+     No group choice. Participant enters first name and last initial only. Intro rewritten. Researcher controls
+     only appear when the page is opened with ?researcher added to the address.
+     Changes are logged in Notion: Team 1 > Decisions. */
+
+  /* =========================================================
+     SAVING TO GOOGLE SHEETS
+     Paste your Apps Script web app URL between the quotes.
+     It looks like https://script.google.com/macros/s/AKfy.../exec
+     Leave it empty to test without saving.
+     ========================================================= */
+  /* How the "Select more / Done" choice appears after tapping the story:
+     'window'   = a window just below the selection, lines under it blurred (all screen sizes)
+     'adaptive' = a small pop-up beside the selection on large screens,
+                  a panel sliding up from the bottom on tablets and phones */
+  const CHOOSER_STYLE = 'adaptive';
+  const SHOW_NOTE_STATUS = false;   // "Waiting for your explanation" / "Saved" label on each box
+
+  /* Saved with every response (in the sheet's Scenario column) so you can tell versions apart. */
+  const PAGE_VERSION = 'V14.2';
+
+  const SHEET_ENDPOINT = 'https://script.google.com/a/macros/husky.neu.edu/s/AKfycbyysXAHcRS1iS9SL3y60okoDkLpd8FPphoTqqgCtUamH9S9R-oxwgGplWvmajvgT_uF/exec';
+
+  /* =========================================================
+     Scenario content
+     The stories live in scenarios.json, kept at the top of the repository
+     (next to index.html). The link chooses one: ?s=S-002. With no ?s=,
+     the "default" scenario in scenarios.json is used.
+     ========================================================= */
+  const SCENARIO_FILES = ['scenarios.json', '../scenarios.json'];  // works from index.html and from versions/
+  const PARAGRAPHS = [];
+  const SECTIONS = [];
+  let SCENARIO_ID = '';
+
+  function splitIntoSections(paragraph) {
+    return paragraph.split(/(?<=[.,!?;:][\u201d"']?)\s+/).filter(Boolean);
+  }
+  function useScenario(sc) {
+    SCENARIO_ID = sc.id;
+    PARAGRAPHS.length = 0;
+    SECTIONS.length = 0;
+    sc.paragraphs.forEach(p => PARAGRAPHS.push(p));
+    PARAGRAPHS.forEach((para, pIdx) => {
+      splitIntoSections(para).forEach((text, sIdx) => {
+        SECTIONS.push({ id: pIdx + '-' + sIdx, paragraph: pIdx, text: text });
+      });
+    });
+  }
+  async function fetchScenarios() {
+    for (const url of SCENARIO_FILES) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) return await res.json();
+      } catch (e) { /* try the next location */ }
+    }
+    throw new Error('scenarios.json not found');
+  }
+
+  /* =========================================================
+     Highlight colours
+     ========================================================= */
+  const COLORS = {
+    yellow: { tint: '#FCE388', solid: '#D9B52C', name: 'yellow' },
+    pink:   { tint: '#F6CFE2', solid: '#E487B7', name: 'pink' },
+    lime:   { tint: '#E2E8B4', solid: '#9AA63F', name: 'green' },
+    grey:   { tint: '#E6E6E6', solid: '#9A9A9A', name: 'grey' }
+  };
+
+  /* =========================================================
+     Questions per group
+     kind "items":   highlight one or more parts; each part gets its own fields
+     kind "compare": two colours side by side, each with its own answer, plus a shared conclusion
+     kind "explanations": several written explanations, then pick the best supported
+     ========================================================= */
+  /* One question set for everyone. No groups.
+     Q1 asks for the overall read (the gestalt) before any close reading.
+     Q2 asks for the details, with highlighting, and the reason for each. */
+  const QUESTIONS = {
+    X: [
+      {
+        id: 'X1', kind: 'text',
+        text: 'What do you predict this relationship will be like a year from now?',
+        help: 'Say what you think will happen, in your own words. There is no right answer.',
+        label: 'Your prediction'
+      },
+      {
+        id: 'X2', kind: 'items',
+        text: 'What can you figure out about this relationship, and why?',
+        help: 'Highlight the part of the story behind each point, then say what it tells you. If you notice nothing in particular, highlight anything and say so.',
+        addLabel: 'Select supporting text',
+        fields: [{ type: 'text', key: 'note', label: 'What do these details tell you about the relationship?' }]
+      }
+    ]
+  };
+
+  function optionsOf(field) {
+    return field.options.map(o => typeof o === 'string' ? { v: o, label: o } : { v: o.v, label: o.label || o.v, c: o.c });
+  }
+
+  /* =========================================================
+     State
+     ========================================================= */
+  function freshState() {
+    return {
+      step: 0,
+      responseId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10),
+      sessionStart: Date.now(),
+      participant: { name: '', group: 'X', code: '' },
+      text: {},      // fieldKey -> typed answer
+      choice: {},    // fieldKey -> chosen option
+      voice: {},     // fieldKey -> { url, blob, duration, mime }
+      micError: {},  // fieldKey -> message shown when the microphone can't be used
+      items: {},     // qid -> [{ id, sectionIds }]
+      sides: {},     // qid -> { x: [[sectionIds]], y: [[sectionIds]] }
+      expl: {},      // qid -> [{ id, quotes: [[sectionIds]] }]
+      idc: 1,
+      hl: null,      // active highlighting target (not used on the annotate page)
+      adding: null,  // item id while "Add more text to this" is on
+      pending: [],   // story parts tapped but not yet turned into a highlight
+      chooserHidden: false,
+      sel: new Set(),
+      showErrors: false,
+      firstReview: null   // snapshot taken the first time the participant reaches Review and submit
+    };
+  }
+  let state = freshState();
+  let rec = null, recTimer = null;
+  const RESEARCHER = /[?&]researcher/.test(window.location.search);
+
+  const stepContainer = document.getElementById('step-container');
+  const progressText = document.getElementById('progress-text');
+  const appMain = document.getElementById('app-main');
+  const screenComplete = document.getElementById('screen-complete');
+  const researcherFab = document.getElementById('researcher-fab');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function questions() { return QUESTIONS[state.participant.group] || []; }
+  function qById(id) { return questions().find(q => q.id === id); }
+  function qIndex(id) { return questions().findIndex(q => q.id === id); }
+  function newId(prefix) { return prefix + (state.idc++); }
+
+  function initGroup() {
+    questions().forEach(q => {
+      if (q.kind === 'items') state.items[q.id] = [];
+      if (q.kind === 'compare') state.sides[q.id] = { x: [], y: [] };
+      if (q.kind === 'explanations') state.expl[q.id] = [{ id: newId('e'), quotes: [] }, { id: newId('e'), quotes: [] }];
+    });
+  }
+
+  /* =========================================================
+     Small helpers
+     ========================================================= */
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function button(cls, text, onClick) {
+    const b = el('button', cls, text);
+    b.type = 'button';
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  function stageIndicatorEl(activeStage) {
+    const wrap = el('div', 'stage-indicator');
+    const s1 = el('span', 'stage' + (activeStage === 1 ? ' active' : ''), '1. Select text');
+    const arrow = el('span', 'stage-arrow', '\u2192');
+    arrow.setAttribute('aria-hidden', 'true');
+    const s2 = el('span', 'stage' + (activeStage === 2 ? ' active' : ''), '2. Explain your choice');
+    wrap.appendChild(s1);
+    wrap.appendChild(arrow);
+    wrap.appendChild(s2);
+    return wrap;
+  }
+
+  function swatch(colorName) {
+    const s = el('span', 'swatch');
+    s.style.setProperty('--c', COLORS[colorName].solid);
+    s.setAttribute('aria-hidden', 'true');
+    return s;
+  }
+  function quoteText(ids) {
+    return SECTIONS.filter(s => ids.indexOf(s.id) !== -1).map(s => s.text).join(' ');
+  }
+  function safeId(key) { return 'f-' + key.replace(/[^a-zA-Z0-9]/g, '-'); }
+  function fmt(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+  function scrollToEl(id, block) {
+    requestAnimationFrame(() => {
+      const e = document.getElementById(id);
+      if (e) e.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: block || 'start' });
+    });
+  }
+  function dropKeys(prefix) {
+    [state.text, state.choice].forEach(map => Object.keys(map).forEach(k => { if (k.indexOf(prefix) === 0) delete map[k]; }));
+    Object.keys(state.voice).forEach(k => {
+      if (k.indexOf(prefix) === 0) { if (state.voice[k].url) URL.revokeObjectURL(state.voice[k].url); delete state.voice[k]; }
+    });
+  }
+
+  function itemColor(q, item) {
+    if (!q.colorBy) return 'yellow';
+    const f = q.fields.find(f => f.key === q.colorBy);
+    const opt = optionsOf(f).find(o => o.v === state.choice[q.id + '.' + item.id + '.' + q.colorBy]);
+    return opt && opt.c ? opt.c : 'grey';
+  }
+
+  function allQuoteGroups() {
+    const groups = [];
+    Object.values(state.items).forEach(list => list.forEach(it => groups.push(it.sectionIds)));
+    Object.values(state.sides).forEach(s => { s.x.forEach(g => groups.push(g)); s.y.forEach(g => groups.push(g)); });
+    Object.values(state.expl).forEach(list => list.forEach(ex => ex.quotes.forEach(g => groups.push(g))));
+    return groups;
+  }
+  function isCited(sectionId) { return allQuoteGroups().some(g => g.indexOf(sectionId) !== -1); }
+
+  function hasContent(q) {
+    const p = q.id + '.';
+    /* Answered only when something is typed or a voice note is recorded.
+       Highlights and option buttons on their own don't count. */
+    const answered = prefix =>
+      Object.keys(state.text).some(k => k.indexOf(prefix) === 0 && state.text[k].trim()) ||
+      Object.keys(state.voice).some(k => k.indexOf(prefix) === 0);
+    if (q.kind === 'items') {
+      /* Highlight question: at least one highlight, every highlight explained, no selection left half-done. */
+      const items = state.items[q.id] || [];
+      if (!items.length || (state.pending && state.pending.length)) return false;
+      return items.every(it => answered(p + it.id + '.'));
+    }
+    return answered(p);
+  }
+
+  /* What the participant still needs to do on the highlight page, for the message under the button. */
+  function itemsGap(q) {
+    const items = state.items[q.id] || [];
+    if (state.pending && state.pending.length) return 'Choose “Done, explain this” and explain your new selection to continue.';
+    if (!items.length) return 'Highlight at least one part of the story and explain it, by typing or recording, to continue.';
+    const missing = items.map((it, i) => i + 1).filter((n, i) => {
+      const pre = q.id + '.' + items[i].id + '.';
+      return !(Object.keys(state.text).some(k => k.indexOf(pre) === 0 && state.text[k].trim()) ||
+               Object.keys(state.voice).some(k => k.indexOf(pre) === 0));
+    });
+    if (!missing.length) return '';
+    const list = missing.length === 1 ? 'highlight ' + missing[0]
+      : 'highlights ' + missing.slice(0, -1).join(', ') + ' and ' + missing[missing.length - 1];
+    return 'Type or record an explanation for ' + list + ' to continue, or remove ' + (missing.length === 1 ? 'it' : 'them') + '.';
+  }
+
+  /* The page's Continue button stays disabled until its question has typed text or a voice note. */
+  function gateButton(btn, q, hintText) {
+    btn.id = 'page-continue';
+    btn.setAttribute('data-q', q.id);
+    btn.setAttribute('aria-describedby', 'continue-hint');
+    const hint = el('p', 'continue-hint', '');
+    hint.id = 'continue-hint';
+    const sync = () => {
+      const ok = hasContent(q);
+      btn.disabled = !ok;
+      hint.hidden = ok;
+      hint.textContent = typeof hintText === 'function' ? hintText() : hintText;
+    };
+    sync();
+    btn._sync = sync;
+    return hint;
+  }
+
+  function refreshStatus(qid) {
+    const q = qById(qid);
+    if (!q) return;
+    const done = hasContent(q);
+    const gate = document.getElementById('page-continue');
+    if (gate && gate._sync && gate.getAttribute('data-q') === qid) gate._sync();
+    const pill = document.querySelector('[data-status="' + qid + '"]');
+    if (pill) { pill.textContent = done ? 'Answered' : 'Not answered yet'; pill.classList.toggle('done', done); }
+    const card = document.getElementById('q-' + qid);
+    if (card && done) {
+      card.classList.remove('needs-answer');
+      const err = card.querySelector('.q-error');
+      if (err) err.hidden = true;
+    }
+    const summary = document.getElementById('questions-error');
+    if (summary && questions().every(hasContent)) summary.hidden = true;
+  }
+
+  /* =========================================================
+     Text field + voice note
+     ========================================================= */
+  const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v5"/></svg>';
+
+  function textField(key, label, placeholder) {
+    const wrap = el('div', 'field');
+    const id = safeId(key);
+    const lab = el('label', 'field-label', label);
+    lab.htmlFor = id;
+    const ta = document.createElement('textarea');
+    ta.id = id;
+    ta.placeholder = placeholder || 'Type your answer, or record a voice note…';
+    ta.value = state.text[key] || '';
+    ta.addEventListener('input', () => { state.text[key] = ta.value; refreshStatus(key.split('.')[0]); });
+    wrap.appendChild(lab);
+    wrap.appendChild(ta);
+    wrap.appendChild(micWidget(key, label));
+    return wrap;
+  }
+
+  function micWidget(key, label) {
+    const row = el('div', 'mic-row');
+    const v = state.voice[key];
+    if (rec && rec.key === key && rec.pending) {
+      row.appendChild(el('span', 'voice-sim', 'Waiting for microphone access… If your browser asks, choose Allow.'));
+      row.appendChild(button('text-link-btn', 'Cancel', stopRecording));
+    } else if (rec && rec.key === key) {
+      const dot = el('span', 'rec-dot'); dot.setAttribute('aria-hidden', 'true');
+      const time = el('span', 'rec-time', 'Recording ' + fmt(Math.round((Date.now() - rec.start) / 1000)));
+      time.setAttribute('data-rec', '');
+      row.appendChild(dot);
+      row.appendChild(time);
+      row.appendChild(button('mic-btn', 'Stop recording', stopRecording));
+    } else if (v) {
+      const note = el('div', 'voice-note');
+      note.appendChild(el('span', 'voice-label', 'Voice note ' + fmt(v.duration)));
+      if (v.url) {
+        const audio = document.createElement('audio');
+        audio.controls = true; audio.preload = 'metadata'; audio.src = v.url;
+        audio.setAttribute('aria-label', 'Voice note for: ' + label);
+        note.appendChild(audio);
+      }
+      note.appendChild(button('text-link-btn', 'Delete', () => {
+        if (v.url) URL.revokeObjectURL(v.url);
+        delete state.voice[key];
+        renderApp();
+      }));
+      row.appendChild(note);
+    } else {
+      row.classList.add('idle');
+      const b = button('mic-btn', '', () => startRecording(key));
+      b.innerHTML = MIC_SVG + '<span>Record a voice note</span>';
+      b.setAttribute('aria-label', 'Record a voice note for: ' + label);
+      row.appendChild(b);
+      if (state.micError[key]) {
+        const msg = el('p', 'mic-error', state.micError[key]);
+        msg.setAttribute('role', 'alert');
+        row.appendChild(msg);
+      }
+    }
+    return row;
+  }
+
+  function micUnavailableReason() {
+    if (!window.isSecureContext) return 'Voice notes need the page to be opened from a secure link (starting with https://). Please type your answer instead.';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      return 'Voice notes don’t work in this browser. Try opening the link in Safari or Chrome, or type your answer instead.';
+    }
+    return '';
+  }
+
+  function startRecording(key) {
+    if (rec) stopRecording();
+    delete state.micError[key];
+    const reason = micUnavailableReason();
+    if (reason) { state.micError[key] = reason; renderApp(); return; }
+
+    const r = { key: key, pending: true, chunks: [] };
+    rec = r;
+    renderApp();
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      if (r.aborted || rec !== r) { stream.getTracks().forEach(t => t.stop()); return; }
+      r.stream = stream;
+      try {
+        r.mr = new MediaRecorder(stream);
+      } catch (e) {
+        stream.getTracks().forEach(t => t.stop());
+        rec = null;
+        state.micError[key] = 'Voice notes don’t work in this browser. Please type your answer instead.';
+        renderApp();
+        return;
+      }
+      r.mr.ondataavailable = e => { if (e.data && e.data.size) r.chunks.push(e.data); };
+      r.mr.start(1000);
+      r.pending = false;
+      r.start = Date.now();
+      recTimer = setInterval(() => {
+        document.querySelectorAll('[data-rec]').forEach(e => { e.textContent = 'Recording ' + fmt(Math.round((Date.now() - r.start) / 1000)); });
+      }, 500);
+      renderApp();
+    }).catch(err => {
+      if (rec !== r) return;
+      rec = null;
+      state.micError[key] = (err && (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError'))
+        ? 'We couldn’t find a microphone. Please type your answer instead.'
+        : 'Microphone access is blocked. Allow the microphone for this page in your browser or phone settings, then try again, or type your answer instead.';
+      renderApp();
+    });
+  }
+
+  function stopRecording() {
+    const r = rec;
+    if (!r) return;
+    rec = null;
+    clearInterval(recTimer);
+    if (r.pending || !r.mr) {
+      r.aborted = true;
+      renderApp();
+      return;
+    }
+    const duration = Math.max(1, Math.round((Date.now() - r.start) / 1000));
+    r.mr.onstop = () => {
+      r.stream.getTracks().forEach(t => t.stop());
+      if (!r.chunks.length) {
+        state.micError[r.key] = 'Nothing was recorded. Please try again, or type your answer instead.';
+      } else {
+        const blob = new Blob(r.chunks, { type: r.mr.mimeType || 'audio/webm' });
+        state.voice[r.key] = { url: URL.createObjectURL(blob), blob: blob, duration: duration, mime: blob.type };
+      }
+      renderApp();
+    };
+    r.mr.stop();
+  }
+
+  function chipField(key, field) {
+    const wrap = el('div', 'field');
+    const lab = el('span', 'field-label', field.label);
+    lab.id = safeId(key) + '-label';
+    wrap.appendChild(lab);
+    const chips = el('div', 'chips');
+    chips.setAttribute('role', 'group');
+    chips.setAttribute('aria-labelledby', lab.id);
+    optionsOf(field).forEach(o => {
+      const b = button('chip', '', () => {
+        if (state.choice[key] === o.v) delete state.choice[key];
+        else state.choice[key] = o.v;
+        renderApp();
+      });
+      if (o.c) { b.appendChild(swatch(o.c)); b.style.setProperty('--t', COLORS[o.c].tint); }
+      b.appendChild(document.createTextNode(o.label));
+      b.setAttribute('aria-pressed', state.choice[key] === o.v ? 'true' : 'false');
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips);
+    return wrap;
+  }
+
+  function addHlButton(label, colorName, onClick, showPlus) {
+    const b = button('add-btn', '', onClick);
+    if (showPlus) {
+      const plus = el('span', 'plus-icon', '+');
+      plus.setAttribute('aria-hidden', 'true');
+      b.appendChild(plus);
+    }
+    b.appendChild(swatch(colorName));
+    b.appendChild(document.createTextNode(label));
+    return b;
+  }
+
+  /* =========================================================
+     Highlight mode
+     ========================================================= */
+  function hlColor() {
+    const hl = state.hl;
+    if (!hl) return 'yellow';
+    const q = qById(hl.qid);
+    if (hl.target === 'side') return q.sides.find(s => s.key === hl.side).color;
+    if (hl.target === 'item') {
+      if (hl.itemId) return itemColor(q, state.items[q.id].find(i => i.id === hl.itemId));
+      return q.colorBy ? 'grey' : 'yellow';
+    }
+    return 'yellow';
+  }
+
+  let justOpenedItemId = null; // transient: which item's explanation card should get the one-time "just opened" emphasis on its next render
+
+  function scrollToElAndFocus(containerId, focusDomId, block) {
+    requestAnimationFrame(() => {
+      const e = document.getElementById(containerId);
+      if (e) e.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: block || 'start' });
+      const f = focusDomId && document.getElementById(focusDomId);
+      if (f) setTimeout(() => f.focus({ preventScroll: true }), reduceMotion ? 0 : 350);
+    });
+  }
+
+  function startHl(cfg) {
+    if (rec) stopRecording();
+    state.hl = cfg;
+    state.hl.pulsed = !!(cfg.initial && cfg.initial.length); // editing an existing highlight: skip the one-time pulse, it's not a first selection
+    state.sel = new Set(cfg.initial || []);
+    const doneBtn = document.getElementById('bar-done');
+    doneBtn.classList.remove('pulse-once', 'is-ready');
+    renderApp();
+    scrollToEl('passage');
+  }
+
+  function returnTarget(hl, createdId) {
+    if (hl.target === 'item') return 'item-' + (hl.itemId || createdId);
+    if (hl.target === 'side') return 'side-' + hl.qid + '-' + hl.side;
+    if (hl.target === 'expl') return 'expl-' + hl.explId;
+    return 'q-' + hl.qid;
+  }
+
+  function finishHl() {
+    const hl = state.hl;
+    if (!hl) return;
+    const ids = SECTIONS.filter(s => state.sel.has(s.id)).map(s => s.id);
+    if (!ids.length) return;
+    let createdId = null;
+    if (hl.target === 'item') {
+      if (hl.itemId) state.items[hl.qid].find(i => i.id === hl.itemId).sectionIds = ids;
+      else { createdId = newId('i'); state.items[hl.qid].push({ id: createdId, sectionIds: ids }); }
+    } else if (hl.target === 'side') {
+      state.sides[hl.qid][hl.side].push(ids);
+    } else if (hl.target === 'expl') {
+      state.expl[hl.qid].find(e => e.id === hl.explId).quotes.push(ids);
+    }
+    const targetItemId = hl.itemId || createdId;
+    const q = qById(hl.qid);
+    justOpenedItemId = (hl.target === 'item') ? targetItemId : null;
+    state.hl = null;
+    state.sel = new Set();
+    renderApp();
+    let focusDomId = null;
+    if (hl.target === 'item' && q && q.fields && q.fields[0]) {
+      focusDomId = safeId(hl.qid + '.' + targetItemId + '.' + q.fields[0].key);
+    }
+    scrollToElAndFocus(returnTarget(hl, createdId), focusDomId, 'center');
+  }
+
+  function cancelHl() {
+    const hl = state.hl;
+    if (!hl) return;
+    state.hl = null;
+    state.sel = new Set();
+    renderApp();
+    scrollToEl(returnTarget(hl), 'center');
+  }
+
+  function renderHlBar() {
+    const bar = document.getElementById('hl-bar');
+    const on = !!state.hl && (state.step === 1 || state.step === 2);
+    bar.hidden = !on;
+    document.body.classList.toggle('hl-on', on);
+    researcherFab.hidden = on || !RESEARCHER || !!document.querySelector('.chooser-sheet');
+    if (!on) return;
+    const q = qById(state.hl.qid);
+    const color = hlColor();
+    document.getElementById('bar-swatch').style.setProperty('--c', COLORS[color].solid);
+    let title = 'Highlighting for Question ' + (qIndex(q.id) + 1);
+    if (state.hl.target === 'side') title += ': ' + q.sides.find(s => s.key === state.hl.side).label.toLowerCase();
+    if (state.hl.target === 'expl') title += ': explanation ' + (state.expl[q.id].findIndex(e => e.id === state.hl.explId) + 1);
+    document.getElementById('bar-title').textContent = title;
+    const n = state.sel.size;
+    let subText;
+    if (n === 0) subText = 'Tap parts of the story to select them.';
+    else if (n === 1) subText = '1 part selected. Next, explain what it tells you.';
+    else subText = n + ' parts selected. Next, explain what they tell you.';
+    document.getElementById('bar-sub').textContent = subText;
+
+    const doneBtn = document.getElementById('bar-done');
+    doneBtn.disabled = n === 0;
+    doneBtn.classList.toggle('is-ready', n > 0);
+    /* The inline "Explain this" pill is now the main cue, so the bar no longer pulses
+       and the speech bubble stays hidden; the bar remains as a backup. */
+    document.getElementById('hl-bubble').hidden = true;
+  }
+
+  document.getElementById('bar-done').addEventListener('click', finishHl);
+  document.getElementById('bar-cancel').addEventListener('click', cancelHl);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && state.hl) cancelHl();
+    else if (e.key === 'Escape' && state.adding) { const id = state.adding; state.adding = null; renderApp(); focusNote(id); }
+    else if (e.key === 'Escape' && state.pending && state.pending.length) clearPending();
+  });
+
+  // On mobile, opening the on-screen keyboard shrinks the visual viewport;
+  // re-center the focused field so it stays visible instead of being hidden behind the keyboard.
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const a = document.activeElement;
+      if (a && a.tagName === 'TEXTAREA') a.scrollIntoView({ block: 'center', behavior: 'auto' });
+    });
+  }
+
+  /* =========================================================
+     Passage
+     ========================================================= */
+  function renderScenario(container) {
+    const card = el('section', 'scenario-card');
+    card.id = 'passage';
+    card.setAttribute('aria-label', 'The story');
+    const hl = state.hl;
+    if (hl) {
+      const c = COLORS[hlColor()];
+      card.classList.add('hl-active');
+      card.style.setProperty('--hl-solid', c.solid);
+      card.style.setProperty('--hl-tint', c.tint);
+      card.appendChild(stageIndicatorEl(1));
+      card.appendChild(el('div', 'hl-banner', 'Tap one or more parts that support your point. Tap a selected part again to deselect it. Then tap \u2018Explain this\u2019 right after your selection.'));
+    }
+
+    PARAGRAPHS.forEach((_, pIdx) => {
+      const p = el('p');
+      const secs = SECTIONS.filter(s => s.paragraph === pIdx);
+      secs.forEach((s, i) => {
+        const span = el('span', 'seg', s.text);
+        span.setAttribute('data-sid', s.id);
+        if (hl) {
+          span.classList.add('tappable');
+          span.tabIndex = 0;
+          span.setAttribute('role', 'button');
+          const toggle = () => {
+            if (state.sel.has(s.id)) state.sel.delete(s.id); else state.sel.add(s.id);
+            span.classList.toggle('pending', state.sel.has(s.id));
+            span.setAttribute('aria-pressed', state.sel.has(s.id) ? 'true' : 'false');
+            renderHlBar();
+            placeInlinePill();
+          };
+          if (state.sel.has(s.id)) span.classList.add('pending');
+          span.setAttribute('aria-pressed', state.sel.has(s.id) ? 'true' : 'false');
+          span.addEventListener('click', toggle);
+          span.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        } else if (isCited(s.id)) {
+          span.classList.add('cited');
+        }
+        p.appendChild(span);
+        if (i < secs.length - 1) p.appendChild(document.createTextNode(' '));
+      });
+      card.appendChild(p);
+    });
+    container.appendChild(card);
+    placeInlinePill();
+  }
+
+  /* The "Explain this" pill sits right after whichever selected part comes last in the story,
+     so the next step appears where the participant is already looking. */
+  function placeInlinePill() {
+    const old = document.getElementById('inline-explain');
+    if (old) old.remove();
+    if (!state.hl || !state.sel.size) return;
+    const selected = SECTIONS.filter(s => state.sel.has(s.id));
+    const last = selected[selected.length - 1];
+    const anchor = document.querySelector('#passage [data-sid="' + last.id + '"]');
+    if (!anchor) return;
+    const n = selected.length;
+    const pill = button('inline-explain', n === 1 ? 'Explain this \u2192' : 'Explain these ' + n + ' \u2192', finishHl);
+    pill.id = 'inline-explain';
+    pill.setAttribute('aria-label', n === 1 ? 'Explain this selection' : 'Explain these ' + n + ' selected parts');
+    anchor.after(pill);
+  }
+
+  /* =========================================================
+     Questions
+     ========================================================= */
+  function renderQuestion(q, idx, total) {
+    const card = el('section', 'qcard');
+    card.id = 'q-' + q.id;
+    const done = hasContent(q);
+    if (state.showErrors && !done) card.classList.add('needs-answer');
+
+    const head = el('div', 'q-head');
+    head.appendChild(el('span', 'q-num', 'Question ' + (idx + 1) + ' of ' + total));
+    const pill = el('span', 'q-status' + (done ? ' done' : ''), done ? 'Answered' : 'Not answered yet');
+    pill.setAttribute('data-status', q.id);
+    head.appendChild(pill);
+    card.appendChild(head);
+
+    const qt = el('p', 'q-text', q.text);
+    qt.id = 'q-' + q.id + '-text';
+    card.appendChild(qt);
+    card.setAttribute('aria-labelledby', qt.id);
+    if (q.help) card.appendChild(el('p', 'hint', q.help));
+    const err = el('p', 'q-error', 'Answer this question to continue.');
+    err.hidden = !(state.showErrors && !done);
+    card.appendChild(err);
+
+    if (q.kind === 'text') card.appendChild(textField(q.id + '.answer', q.label || 'Your answer'));
+    else if (q.kind === 'items') renderItemsQ(q, card);
+    else if (q.kind === 'compare') renderCompareQ(q, card);
+    else if (q.kind === 'explanations') renderExplQ(q, card);
+
+    stepContainer.appendChild(card);
+  }
+
+  function renderItemsQ(q, card) {
+    (q.before || []).forEach(f => card.appendChild(textField(q.id + '.' + f.key, f.label, f.placeholder)));
+
+    const items = state.items[q.id];
+    items.forEach((item, i) => {
+      const color = itemColor(q, item);
+      const box = el('div', 'item-card');
+      box.id = 'item-' + item.id;
+      box.style.setProperty('--c', COLORS[color].solid);
+
+      const isJustOpened = justOpenedItemId === item.id;
+      if (isJustOpened) {
+        box.appendChild(stageIndicatorEl(2));
+        box.classList.add('just-opened');
+      }
+
+      box.appendChild(el('span', 'small-label', (q.itemLabel || 'Highlight') + (q.max === 1 ? '' : ' ' + (i + 1))));
+      const quote = el('div', 'quote');
+      const mark = el('span', 'quote-hl', '“' + quoteText(item.sectionIds) + '”');
+      mark.style.setProperty('--t', COLORS[color].tint);
+      quote.appendChild(mark);
+      box.appendChild(quote);
+
+      q.fields.forEach(f => {
+        const key = q.id + '.' + item.id + '.' + f.key;
+        box.appendChild(f.type === 'chips' ? chipField(key, f) : textField(key, f.label, f.placeholder));
+      });
+
+      const actions = el('div', 'item-actions');
+      actions.appendChild(button('text-link-btn', 'Change highlight', () => startHl({ qid: q.id, target: 'item', itemId: item.id, initial: item.sectionIds })));
+      actions.appendChild(button('text-link-btn', 'Remove', () => {
+        state.items[q.id] = state.items[q.id].filter(x => x.id !== item.id);
+        dropKeys(q.id + '.' + item.id + '.');
+        renderApp();
+      }));
+      box.appendChild(actions);
+      card.appendChild(box);
+
+      if (isJustOpened) {
+        const thisBox = box;
+        setTimeout(() => { thisBox.classList.remove('just-opened'); }, 1800);
+        justOpenedItemId = null; // consume: only the render right after "Continue" shows this
+      }
+    });
+
+    if (!q.max || items.length < q.max) {
+      if (!items.length) {
+        card.appendChild(el('p', 'empty-hint', 'Nothing highlighted yet.'));
+      } else {
+        card.appendChild(el('p', 'hint', 'You can select several parts for the same point. For a different point, add another highlight and explanation.'));
+      }
+      const label = items.length ? 'Add another highlight and explanation' : q.addLabel;
+      card.appendChild(addHlButton(label, q.colorBy ? 'grey' : 'yellow', () => startHl({ qid: q.id, target: 'item' }), items.length > 0));
+    }
+
+    (q.after || []).forEach(f => card.appendChild(textField(q.id + '.' + f.key, f.label, f.placeholder)));
+  }
+
+  function renderCompareQ(q, card) {
+    const grid = el('div', 'compare-grid');
+    q.sides.forEach(side => {
+      const c = COLORS[side.color];
+      const col = el('div', 'compare-col');
+      col.id = 'side-' + q.id + '-' + side.key;
+      col.style.setProperty('--c', c.solid);
+      col.style.setProperty('--t', c.tint);
+      const h = el('h4');
+      h.appendChild(swatch(side.color));
+      h.appendChild(document.createTextNode(side.label));
+      col.appendChild(h);
+
+      const quotes = state.sides[q.id][side.key];
+      if (!quotes.length) col.appendChild(el('p', 'empty-hint', 'Nothing highlighted in ' + c.name + ' yet.'));
+      quotes.forEach((ids, qi) => {
+        const chip = el('div', 'quote-chip', '“' + quoteText(ids) + '”');
+        const x = button('remove-x', '×', () => { state.sides[q.id][side.key].splice(qi, 1); renderApp(); });
+        x.setAttribute('aria-label', 'Remove this highlight');
+        chip.appendChild(x);
+        col.appendChild(chip);
+      });
+      col.appendChild(addHlButton('Highlight in ' + c.name, side.color, () => startHl({ qid: q.id, target: 'side', side: side.key })));
+      col.appendChild(textField(q.id + '.side.' + side.key, side.prompt));
+      grid.appendChild(col);
+    });
+    card.appendChild(grid);
+
+    const conc = el('div', 'compare-conclusion');
+    const h = el('h4');
+    const join = el('span', 'join-mark');
+    q.sides.forEach(s => join.appendChild(swatch(s.color)));
+    h.appendChild(join);
+    h.appendChild(document.createTextNode('Bringing them together'));
+    conc.appendChild(h);
+    conc.appendChild(textField(q.id + '.conclusion', q.conclusion));
+    card.appendChild(conc);
+  }
+
+  function renderExplQ(q, card) {
+    const list = state.expl[q.id];
+    list.forEach((ex, i) => {
+      const box = el('div', 'expl-card');
+      box.id = 'expl-' + ex.id;
+      box.style.setProperty('--t', COLORS.yellow.tint);
+      box.appendChild(el('h4', null, 'Explanation ' + (i + 1)));
+      box.appendChild(textField(q.id + '.expl.' + ex.id, 'What could explain the other person’s behavior?'));
+      ex.quotes.forEach((ids, qi) => {
+        const chip = el('div', 'quote-chip', '“' + quoteText(ids) + '”');
+        const x = button('remove-x', '×', () => { ex.quotes.splice(qi, 1); renderApp(); });
+        x.setAttribute('aria-label', 'Remove this highlight');
+        chip.appendChild(x);
+        box.appendChild(chip);
+      });
+      const actions = el('div', 'item-actions');
+      const cite = addHlButton(ex.quotes.length ? 'Highlight more support' : 'Highlight supporting text', 'yellow', () => startHl({ qid: q.id, target: 'expl', explId: ex.id }));
+      cite.style.marginBottom = '0';
+      actions.style.alignItems = 'center';
+      actions.appendChild(cite);
+      if (list.length > 2) {
+        actions.appendChild(button('text-link-btn', 'Remove explanation', () => {
+          state.expl[q.id] = list.filter(e => e.id !== ex.id);
+          dropKeys(q.id + '.expl.' + ex.id);
+          if (state.choice[q.id + '.best'] === ex.id) delete state.choice[q.id + '.best'];
+          renderApp();
+        }));
+      }
+      box.appendChild(actions);
+      card.appendChild(box);
+    });
+
+    const addBtn = button('add-btn', 'Add another explanation', () => {
+      const id = newId('e');
+      state.expl[q.id].push({ id: id, quotes: [] });
+      renderApp();
+      scrollToEl('expl-' + id, 'center');
+    });
+    card.appendChild(addBtn);
+
+    card.appendChild(el('hr', 'divider'));
+    card.appendChild(chipField(q.id + '.best', {
+      label: 'Which explanation is best supported?',
+      options: list.map((ex, i) => ({ v: ex.id, label: 'Explanation ' + (i + 1) }))
+    }));
+    card.appendChild(textField(q.id + '.why', 'What evidence separates it from the others?'));
+  }
+
+  /* =========================================================
+     Step 1: read and answer
+     ========================================================= */
+  function renderQuestionsStep() {
+    const all = questions();
+    const pageIdx = state.step - 1;           // step 1 -> first question, step 2 -> second
+    const q = all[pageIdx];
+    if (q.kind === 'items') { renderAnnotateStep(q, pageIdx, all); return; }
+    if (pageIdx === 0) {
+      stepContainer.appendChild(el('p', 'instruction', 'Read the story, then answer the question below it.'));
+      stepContainer.appendChild(el('p', 'hint', 'You can type, record a voice note, or both.'));
+    } else {
+      stepContainer.appendChild(el('p', 'instruction', 'Now look at the story again and answer the second question.'));
+      stepContainer.appendChild(el('p', 'hint', 'This one asks you to highlight parts of the story. For each highlight you can type, record a voice note, or both.'));
+    }
+    renderScenario(stepContainer);
+
+    const qs = [q];
+    renderQuestion(q, pageIdx, all.length);
+
+    const unanswered = qs.filter(q => !hasContent(q));
+    const summary = el('p', 'form-error', '');
+    summary.id = 'questions-error';
+    summary.setAttribute('role', 'alert');
+    summary.hidden = !(state.showErrors && unanswered.length);
+    if (unanswered.length) {
+      const nums = unanswered.map(q => qIndex(q.id) + 1);
+      summary.textContent = (nums.length === 1 ? 'Question ' + nums[0] + ' still needs an answer.' : 'Questions ' + nums.slice(0, -1).join(', ') + ' and ' + nums[nums.length - 1] + ' still need an answer.');
+    }
+    stepContainer.appendChild(summary);
+
+    const last = pageIdx === all.length - 1;
+    const pageBtn = button('fia-btn', last ? 'Continue to review' : 'Continue', () => {
+      if (rec) stopRecording();
+      if (state.hl) cancelHl();
+      const missing = qs.filter(q => !hasContent(q));
+      if (missing.length) {
+        state.showErrors = true;
+        renderApp();
+        scrollToEl('q-' + missing[0].id);
+        return;
+      }
+      state.showErrors = false;
+      state.step = state.step + 1;
+      renderApp();
+      window.scrollTo(0, 0);
+    });
+    stepContainer.appendChild(pageBtn);
+    stepContainer.appendChild(gateButton(pageBtn, q, 'Type or record your answer to continue.'));
+  }
+
+  /* =========================================================
+     Annotate page: tap the story to highlight, explain right there
+     ========================================================= */
+  let annotateNewId = null;      // card to focus right after it's created
+  const wideQuery = window.matchMedia('(min-width: 1000px)');
+  wideQuery.addEventListener('change', () => { if (pageIsAnnotate()) renderApp(); });
+
+  function pageIsAnnotate() {
+    const q = questions()[state.step - 1];
+    return !!q && (state.step === 1 || state.step === 2) && q.kind === 'items';
+  }
+  function sectionIndex(id) { return SECTIONS.findIndex(s => s.id === id); }
+  function sortItems(qid) {
+    state.items[qid].forEach(it => it.sectionIds.sort((a, b) => sectionIndex(a) - sectionIndex(b)));
+    state.items[qid].sort((a, b) => sectionIndex(a.sectionIds[0]) - sectionIndex(b.sectionIds[0]));
+  }
+  function ownerOf(qid, sid) { return state.items[qid].find(it => it.sectionIds.indexOf(sid) !== -1); }
+  function noteKey(q, item) { return q.id + '.' + item.id + '.' + q.fields[0].key; }
+
+  function focusNote(itemId, block) {
+    requestAnimationFrame(() => {
+      const card = document.getElementById('item-' + itemId);
+      if (!card) return;
+      card.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: block || 'nearest' });
+      const ta = card.querySelector('textarea');
+      if (ta) setTimeout(() => ta.focus({ preventScroll: true }), reduceMotion ? 0 : 250);
+    });
+  }
+
+  function onStoryTap(q, sid) {
+    if (rec) stopRecording();
+    const owner = ownerOf(q.id, sid);
+    if (state.adding) {
+      const it = state.items[q.id].find(x => x.id === state.adding);
+      if (!it) { state.adding = null; renderApp(); return; }
+      if (owner && owner.id === it.id) {
+        if (it.sectionIds.length > 1) it.sectionIds = it.sectionIds.filter(x => x !== sid);
+      } else if (!owner) {
+        it.sectionIds.push(sid);
+      } else {
+        return; // already part of a different highlight
+      }
+      sortItems(q.id);
+      renderApp();
+      return;
+    }
+    if (state.pending.indexOf(sid) !== -1) {
+      state.pending = state.pending.filter(x => x !== sid);
+      state.chooserHidden = false;
+      renderApp();
+      return;
+    }
+    if (owner) {
+      if (!state.pending.length) focusNote(owner.id, 'nearest');
+      return;
+    }
+    state.pending.push(sid);
+    state.pending.sort((a, b) => sectionIndex(a) - sectionIndex(b));
+    state.chooserHidden = false;
+    renderApp();
+  }
+
+  function finishSelection(q) {
+    if (!state.pending.length) return;
+    const id = newId('i');
+    state.items[q.id].push({ id: id, sectionIds: state.pending.slice() });
+    state.pending = [];
+    state.chooserHidden = false;
+    sortItems(q.id);
+    annotateNewId = id;
+    renderApp();
+    focusNote(id, 'nearest');
+    const glowId = id;
+    setTimeout(() => {
+      const c = document.getElementById('item-' + glowId);
+      if (c) c.classList.add('glow');
+      setTimeout(() => { const c2 = document.getElementById('item-' + glowId); if (c2) c2.classList.remove('glow'); }, 2000);
+    }, reduceMotion ? 0 : 260);
+  }
+
+  function clearPending() {
+    if (!state.pending.length) return;
+    state.pending = [];
+    state.chooserHidden = false;
+    renderApp();
+  }
+
+  function useSheet() {
+    return CHOOSER_STYLE === 'adaptive' && window.matchMedia('(max-width: 1024px)').matches;
+  }
+
+  function chooserText() {
+    const n = state.pending.length;
+    return {
+      count: n === 1 ? '1 part selected' : n + ' parts selected',
+      hint: 'Want to add another part to this point, or are you ready to explain it?'
+    };
+  }
+
+  /* Builds the chooser for the current selection. Window and pop-up live inside the story card;
+     the bottom panel is fixed to the screen. */
+  function renderChooser(q, story) {
+    const old = document.getElementById('chooser');
+    if (old) old.remove();
+    document.body.classList.remove('sheet-on');
+    if (!state.pending.length || state.chooserHidden || state.adding) return;
+    const t = chooserText();
+    const more = () => { state.chooserHidden = true; renderApp(); };
+    const done = () => finishSelection(q);
+    let box;
+
+    if (CHOOSER_STYLE === 'window') {
+      box = el('div', 'chooser-window');
+      box.appendChild(el('p', 'chooser-count', t.count));
+      box.appendChild(el('p', 'chooser-hint', t.hint));
+      const row = el('div', 'chooser-actions');
+      row.appendChild(button('fia-btn-outline', 'Select more', more));
+      row.appendChild(button('fia-btn', 'Done, explain this \u2192', done));
+      box.appendChild(row);
+      story.appendChild(box);
+    } else if (useSheet()) {
+      box = el('div', 'chooser-sheet');
+      const inner = el('div', 'sheet-inner');
+      inner.appendChild(el('div', 'grabber'));
+      inner.appendChild(el('p', 'chooser-count', t.count));
+      inner.appendChild(el('p', 'chooser-hint', t.hint));
+      const row = el('div', 'chooser-actions');
+      row.appendChild(button('fia-btn-outline', 'Select more', more));
+      row.appendChild(button('fia-btn', 'Done, explain this \u2192', done));
+      inner.appendChild(row);
+      box.appendChild(inner);
+      document.body.appendChild(box);
+      document.body.classList.add('sheet-on');
+    } else {
+      box = el('div', 'chooser-pop below');
+      box.appendChild(el('span', 'pop-count', t.count));
+      box.appendChild(button('pop-more', 'Select more', more));
+      box.appendChild(button('pop-done', 'Done, explain this \u2192', done));
+      story.appendChild(box);
+    }
+    box.id = 'chooser';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Choose what to do with your selection');
+    requestAnimationFrame(placeChooser);
+  }
+
+  function placeChooser() {
+    const box = document.getElementById('chooser');
+    const story = document.getElementById('passage');
+    if (!box || !story) return;
+    if (box.classList.contains('chooser-sheet')) {
+      /* keep the selection visible above the panel */
+      const last = story.querySelector('[data-sid="' + state.pending[state.pending.length - 1] + '"]');
+      if (!last) return;
+      const lr = last.getBoundingClientRect();
+      const limit = window.innerHeight - box.offsetHeight - 16;
+      if (lr.bottom > limit) window.scrollBy({ top: lr.bottom - limit, behavior: reduceMotion ? 'auto' : 'smooth' });
+      return;
+    }
+    story.querySelectorAll('.blurred').forEach(e => e.classList.remove('blurred'));
+    const lastSid = state.pending[state.pending.length - 1];
+    const anchor = story.querySelector('[data-sid="' + lastSid + '"]');
+    if (!anchor) return;
+    const rects = anchor.getClientRects();
+    const r = rects[rects.length - 1];
+    const sr = story.getBoundingClientRect();
+    const w = box.offsetWidth, h = box.offsetHeight;
+    let left = r.left - sr.left;
+    left = Math.max(12, Math.min(left, story.clientWidth - w - 12));
+    let top = r.bottom - sr.top + 8;
+    if (box.classList.contains('chooser-window')) {
+      const lh = parseFloat(getComputedStyle(anchor).lineHeight) || 30;
+      top = r.bottom - sr.top + 2 * lh + 6;   // leave two lines of the story visible under the selection
+      const overflow = top + h + 16 - story.clientHeight;
+      story.style.paddingBottom = overflow > 0 ? (20 + overflow) + 'px' : '';
+    }
+
+    if (box.classList.contains('chooser-pop')) {
+      const roomBelow = window.innerHeight - r.bottom;
+      const above = roomBelow < h + 24 && r.top > h + 24;
+      if (above) top = r.top - sr.top - h - 10;
+      box.classList.toggle('above', above);
+      box.classList.toggle('below', !above);
+      const caret = Math.max(14, Math.min((r.left + Math.min(r.width, 40) / 2) - sr.left - left - 6, w - 26));
+      box.style.setProperty('--caret', caret + 'px');
+    }
+    box.style.left = left + 'px';
+    box.style.top = top + 'px';
+
+    if (box.classList.contains('chooser-window')) {
+      const br = box.getBoundingClientRect();
+      story.querySelectorAll('.seg, .hl-num').forEach(seg => {
+        if (seg.classList.contains('pending')) return;
+        for (const cr of seg.getClientRects()) {
+          if (cr.bottom > br.top - 2 && cr.top < br.bottom + 2) { seg.classList.add('blurred'); break; }
+        }
+      });
+      const viewBottom = window.innerHeight;
+      if (br.bottom > viewBottom - 8) box.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+    }
+  }
+  window.addEventListener('resize', () => { if (document.getElementById('chooser')) renderApp(); });
+
+  function linkItem(q, item, on) {
+    item.sectionIds.forEach(sid => {
+      const seg = document.querySelector('#passage [data-sid="' + sid + '"]');
+      if (seg) seg.classList.toggle('linked', on);
+    });
+    const card = document.getElementById('item-' + item.id);
+    if (card) card.classList.toggle('active', on);
+  }
+
+  function renderNoteCard(q, item, n) {
+    const card = el('div', 'note-card');
+    card.id = 'item-' + item.id;
+    if (state.adding === item.id) card.classList.add('adding');
+    if (annotateNewId === item.id) card.classList.add('new');
+
+    const head = el('div', 'note-head');
+    const badge = el('span', 'hl-num', String(n));
+    badge.setAttribute('aria-hidden', 'true');
+    head.appendChild(badge);
+    head.appendChild(el('span', 'small-label', 'Highlight ' + n));
+    card.appendChild(head);
+    card.appendChild(el('p', 'note-quote', '“' + quoteText(item.sectionIds) + '”'));
+
+    if (state.adding === item.id) {
+      card.appendChild(el('p', 'note-tip', 'Tap more parts of the story to add them to this highlight. Tap an added part again to take it out.'));
+    }
+
+    const key = noteKey(q, item);
+    const field = textField(key, 'Now tell us what this shows', 'Type here…');
+    const lab = field.querySelector('.field-label');
+    if (lab) lab.classList.add('note-heading');
+    const quoteEl = card.querySelector('.note-quote');
+    if (lab && quoteEl) { field.insertBefore(quoteEl, lab.nextSibling); }
+    card.appendChild(field);
+    if (SHOW_NOTE_STATUS) {
+      const answered = () => !!((state.text[key] || '').trim() || state.voice[key]);
+      const chip = el('span', 'note-status');
+      const paint = () => {
+        const ok = answered();
+        chip.textContent = ok ? 'Saved \u2713' : 'Waiting for your explanation';
+        chip.className = 'note-status ' + (ok ? 'saved' : 'waiting');
+      };
+      paint();
+      head.appendChild(chip);
+      const ta = field.querySelector('textarea');
+      if (ta) ta.addEventListener('input', paint);
+    }
+
+    if (state.items[q.id].length === 1 && state.adding !== item.id) {
+      card.appendChild(el('p', 'note-tip', 'For your next point, tap another part of the story.'));
+    }
+    const actions = el('div', 'item-actions');
+    if (state.adding === item.id) {
+      actions.appendChild(button('small-btn', 'Finished adding', () => { state.adding = null; renderApp(); focusNote(item.id); }));
+    } else {
+      actions.appendChild(button('text-link-btn', 'Add more text to this', () => {
+        if (rec) stopRecording();
+        state.adding = item.id;
+        renderApp();
+        if (wideQuery.matches) return;
+        requestAnimationFrame(() => {
+          const first = document.querySelector('#passage [data-sid="' + item.sectionIds[0] + '"]');
+          if (first) first.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+        });
+      }));
+    }
+    actions.appendChild(button('text-link-btn', 'Remove', () => {
+      const key = noteKey(q, item);
+      const hasWork = (state.text[key] || '').trim() || state.voice[key];
+      if (hasWork && !window.confirm('Remove this highlight and what you wrote about it?')) return;
+      if (rec) stopRecording();
+      state.items[q.id] = state.items[q.id].filter(x => x.id !== item.id);
+      dropKeys(q.id + '.' + item.id + '.');
+      if (state.adding === item.id) state.adding = null;
+      renderApp();
+    }));
+    card.appendChild(actions);
+
+    card.addEventListener('mouseenter', () => linkItem(q, item, true));
+    card.addEventListener('mouseleave', () => { if (!card.contains(document.activeElement)) linkItem(q, item, false); });
+    card.addEventListener('focusin', () => linkItem(q, item, true));
+    card.addEventListener('focusout', e => { if (!card.contains(e.relatedTarget)) linkItem(q, item, false); });
+    return card;
+  }
+
+  function renderAnnotateStep(q, pageIdx, all) {
+    const wide = wideQuery.matches;
+    const items = state.items[q.id];
+    const done = hasContent(q);
+
+    stepContainer.appendChild(el('p', 'instruction', 'Now look at the story again and answer the second question.'));
+
+    const qcard = el('section', 'qcard q-compact');
+    qcard.id = 'q-' + q.id;
+    if (state.showErrors && !done) qcard.classList.add('needs-answer');
+    const head = el('div', 'q-head');
+    head.appendChild(el('span', 'q-num', 'Question ' + (pageIdx + 1) + ' of ' + all.length));
+    const pill = el('span', 'q-status' + (done ? ' done' : ''), done ? 'Answered' : 'Not answered yet');
+    pill.setAttribute('data-status', q.id);
+    head.appendChild(pill);
+    qcard.appendChild(head);
+    const qt = el('p', 'q-text', q.text);
+    qt.id = 'q-' + q.id + '-text';
+    qcard.appendChild(qt);
+    qcard.setAttribute('aria-labelledby', qt.id);
+    qcard.appendChild(el('p', 'hint', 'Tap the parts of the story that tell you something. When you’ve selected what you want, choose “Done, explain this” and a box opens ' + (wide ? 'beside the story' : 'below it') + ' for you to say what it tells you. You can type, record a voice note, or both.'));
+    const err = el('p', 'q-error', 'Highlight at least one part of the story and say what it tells you.');
+    err.hidden = !(state.showErrors && !done);
+    qcard.appendChild(err);
+    stepContainer.appendChild(qcard);
+
+    const wrap = el('div', 'annotate' + (wide ? ' wide' : ''));
+    wrap.id = 'annotate';
+    const story = el('section', 'scenario-card' + (state.adding ? ' adding' : ''));
+    story.id = 'passage';
+    story.setAttribute('aria-label', 'The story. Tap a part to highlight it.');
+
+    const addingItem = state.adding && items.find(x => x.id === state.adding);
+    if (addingItem) {
+      const banner = el('div', 'adding-banner');
+      banner.appendChild(el('span', null, 'Adding to highlight ' + (items.indexOf(addingItem) + 1) + ': tap more parts of the story.'));
+      banner.appendChild(button('small-btn', 'Finished adding', () => { const id = state.adding; state.adding = null; renderApp(); focusNote(id, 'center'); }));
+      story.appendChild(banner);
+    }
+
+    const numberOf = {};
+    items.forEach((it, i) => { numberOf[it.id] = i + 1; });
+    const lastSidOf = {};
+    items.forEach(it => { lastSidOf[it.sectionIds[it.sectionIds.length - 1]] = it; });
+
+    PARAGRAPHS.forEach((_, pIdx) => {
+      const p = el('p');
+      const secs = SECTIONS.filter(s => s.paragraph === pIdx);
+      secs.forEach((s, i) => {
+        const span = el('span', 'seg mark', s.text);
+        span.setAttribute('data-sid', s.id);
+        span.tabIndex = 0;
+        span.setAttribute('role', 'button');
+        const owner = ownerOf(q.id, s.id);
+        if (owner) {
+          span.classList.add('marked');
+          span.setAttribute('aria-pressed', 'true');
+          span.setAttribute('aria-label', s.text + ' (highlight ' + numberOf[owner.id] + ')');
+          if (state.adding === owner.id) span.classList.add('adding-in');
+        } else if (state.pending.indexOf(s.id) !== -1) {
+          span.classList.add('pending');
+          span.setAttribute('aria-pressed', 'true');
+        } else {
+          span.setAttribute('aria-pressed', 'false');
+        }
+        const tap = () => onStoryTap(q, s.id);
+        span.addEventListener('click', tap);
+        span.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
+        p.appendChild(span);
+
+        const endsItem = lastSidOf[s.id];
+        if (endsItem) {
+          const badge = button('hl-num', String(numberOf[endsItem.id]), () => focusNote(endsItem.id, 'center'));
+          badge.setAttribute('aria-label', 'Go to highlight ' + numberOf[endsItem.id]);
+          p.appendChild(badge);
+        }
+        if (i < secs.length - 1) p.appendChild(document.createTextNode(' '));
+      });
+      story.appendChild(p);
+
+      if (!wide) {
+        items.filter(it => SECTIONS[sectionIndex(it.sectionIds[it.sectionIds.length - 1])].paragraph === pIdx)
+          .forEach(it => story.appendChild(renderNoteCard(q, it, numberOf[it.id])));
+      }
+    });
+    wrap.appendChild(story);
+
+    if (wide) {
+      const notes = el('div', 'notes');
+      notes.id = 'notes';
+      notes.setAttribute('aria-label', 'Your highlights and explanations');
+      if (!items.length) {
+        const empty = el('div', 'notes-empty');
+        empty.appendChild(el('strong', null, 'Your explanations will appear here'));
+        empty.appendChild(document.createTextNode('Tap a part of the story to highlight it. A box will open here, level with it, for you to explain what it tells you.'));
+        notes.appendChild(empty);
+      }
+      items.forEach(it => notes.appendChild(renderNoteCard(q, it, numberOf[it.id])));
+      wrap.appendChild(notes);
+    }
+    stepContainer.appendChild(wrap);
+    renderChooser(q, story);
+    annotateNewId = null;
+
+    if (wide) {
+      requestAnimationFrame(layoutNotes);
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => layoutNotes());
+        ro.observe(story);
+        wrap.querySelectorAll('.note-card').forEach(c => ro.observe(c));
+      }
+    }
+
+    const summary = el('p', 'form-error', done ? '' : 'Question ' + (pageIdx + 1) + ' still needs an answer.');
+    summary.id = 'questions-error';
+    summary.setAttribute('role', 'alert');
+    summary.hidden = !(state.showErrors && !done);
+    stepContainer.appendChild(summary);
+
+    const last = pageIdx === all.length - 1;
+    const annBtn = button('fia-btn', last ? 'Continue to review' : 'Continue', () => {
+      if (rec) stopRecording();
+      state.adding = null;
+      state.pending = [];
+      if (!hasContent(q)) {
+        state.showErrors = true;
+        renderApp();
+        scrollToEl('q-' + q.id);
+        return;
+      }
+      state.showErrors = false;
+      state.step = state.step + 1;
+      renderApp();
+      window.scrollTo(0, 0);
+    });
+    stepContainer.appendChild(annBtn);
+    stepContainer.appendChild(gateButton(annBtn, q, () => itemsGap(q)));
+  }
+
+  /* Wide screens: place each explanation level with its highlight, pushing cards down so they never overlap. */
+  function layoutNotes() {
+    const wrap = document.getElementById('annotate');
+    const notes = document.getElementById('notes');
+    if (!wrap || !notes || !wrap.classList.contains('wide')) return;
+    const q = questions()[state.step - 1];
+    if (!q || q.kind !== 'items') return;
+    const base = notes.getBoundingClientRect().top;
+    let bottom = 0;
+    state.items[q.id].forEach(it => {
+      const card = document.getElementById('item-' + it.id);
+      const anchor = document.querySelector('#passage [data-sid="' + it.sectionIds[0] + '"]');
+      if (!card || !anchor) return;
+      const desired = Math.max(0, anchor.getBoundingClientRect().top - base - 14);
+      const top = Math.max(desired, bottom ? bottom + 14 : 0);
+      card.style.top = top + 'px';
+      bottom = top + card.offsetHeight;
+    });
+    notes.style.minHeight = bottom + 'px';
+  }
+
+  /* =========================================================
+     Step 2: review
+     ========================================================= */
+  function reviewText(container, label, key) {
+    if (label) container.appendChild(el('span', 'small-label', label));
+    const t = (state.text[key] || '').trim();
+    const v = state.voice[key];
+    if (t) container.appendChild(el('p', 'review-answer', t));
+    if (v) {
+      const row = el('div', 'review-voice');
+      const note = el('div', 'voice-note');
+      note.appendChild(el('span', 'voice-label', 'Voice note ' + fmt(v.duration)));
+      if (v.url) { const a = document.createElement('audio'); a.controls = true; a.preload = 'metadata'; a.src = v.url; note.appendChild(a); }
+      else note.appendChild(el('span', 'voice-sim', 'Simulated'));
+      row.appendChild(note);
+      container.appendChild(row);
+    }
+    if (!t && !v) container.appendChild(el('p', 'review-answer none', 'No answer'));
+  }
+  function reviewQuote(container, ids, colorName) {
+    const quote = el('div', 'quote');
+    const mark = el('span', 'quote-hl', '“' + quoteText(ids) + '”');
+    mark.style.setProperty('--t', COLORS[colorName].tint);
+    quote.appendChild(mark);
+    container.appendChild(quote);
+  }
+
+  /* ---------- Before-review snapshot and change summary ---------- */
+  function currentAnswers() {
+    const qs = questions();
+    const q1 = qs[0], q2 = qs[1];
+    const noteKey = q2.fields[0].key;
+    const q1Key = q1.id + '.answer';
+    return {
+      prediction: { text: (state.text[q1Key] || '').trim(), voice: !!state.voice[q1Key] },
+      highlights: state.items[q2.id].map(item => {
+        const key = q2.id + '.' + item.id + '.' + noteKey;
+        return {
+          id: item.id,
+          sectionIds: item.sectionIds.slice(),
+          quote: quoteText(item.sectionIds),
+          explanation: (state.text[key] || '').trim(),
+          voice: !!state.voice[key]
+        };
+      })
+    };
+  }
+
+  function takeFirstReviewSnapshot() {
+    if (state.firstReview) return;
+    state.firstReview = { at: Date.now(), answers: currentAnswers() };
+  }
+
+  function wordDiff(before, after) {
+    const norm = t => t.toLowerCase().replace(/[^\p{L}\p{N}\s'’]/gu, ' ').split(/\s+/).filter(Boolean);
+    const a = norm(before), b = norm(after);
+    const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+    for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) {
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+    const common = dp[0][0];
+    return { added: b.length - common, removed: a.length - common };
+  }
+
+  function reviewChanges() {
+    const snap = state.firstReview;
+    if (!snap) return null;
+    const before = snap.answers, after = currentAnswers();
+    const status = {};
+    let added = 0, removed = 0, reworded = 0, rehighlighted = 0, voiceAdded = 0, voiceDeleted = 0;
+    const beforeById = {};
+    before.highlights.forEach(h => { beforeById[h.id] = h; });
+
+    after.highlights.forEach(h => {
+      const old = beforeById[h.id];
+      if (!old) { added++; status[h.id] = 'Added in review'; if (h.voice) voiceAdded++; return; }
+      const moved = old.sectionIds.join(',') !== h.sectionIds.join(',');
+      const rewrote = old.explanation !== h.explanation;
+      if (moved) rehighlighted++;
+      if (rewrote) reworded++;
+      if (old.voice && !h.voice) voiceDeleted++;
+      if (!old.voice && h.voice) voiceAdded++;
+      status[h.id] = moved && rewrote ? 'Re-highlighted and reworded in review'
+        : moved ? 'Re-highlighted in review'
+        : rewrote ? 'Reworded in review'
+        : 'Unchanged';
+    });
+    const afterIds = after.highlights.map(h => h.id);
+    const removedList = before.highlights.filter(h => afterIds.indexOf(h.id) === -1);
+    removed = removedList.length;
+    removedList.forEach(h => { if (h.voice) voiceDeleted++; });
+
+    if (before.prediction.voice && !after.prediction.voice) voiceDeleted++;
+    if (!before.prediction.voice && after.prediction.voice) voiceAdded++;
+    const words = wordDiff(before.prediction.text, after.prediction.text);
+    const q1Changed = before.prediction.text !== after.prediction.text || before.prediction.voice !== after.prediction.voice;
+
+    return {
+      secondsFromFirstReview: Math.round((Date.now() - snap.at) / 1000),
+      q1Changed: q1Changed,
+      q1WordsAdded: words.added,
+      q1WordsRemoved: words.removed,
+      highlightsBefore: before.highlights.length,
+      highlightsAfter: after.highlights.length,
+      added: added, removed: removed, reworded: reworded, rehighlighted: rehighlighted,
+      voiceAdded: voiceAdded, voiceDeleted: voiceDeleted,
+      statusById: status,
+      before: {
+        prediction: before.prediction,
+        highlights: before.highlights.map(h => ({ quote: h.quote, explanation: h.explanation, voice: h.voice }))
+      },
+      removedHighlights: removedList.map(h => ({ quote: h.quote, explanation: h.explanation, voice: h.voice }))
+    };
+  }
+
+  function renderReviewStep() {
+    takeFirstReviewSnapshot();
+    stepContainer.appendChild(el('h1', null, 'Review and submit'));
+    stepContainer.appendChild(el('p', 'hint', 'Check your answers, then submit. Tap Edit to change anything.'));
+
+    questions().forEach((q, idx) => {
+      const block = el('div', 'review-block');
+      const header = el('div', 'review-block-header');
+      header.appendChild(el('h3', null, 'Question ' + (idx + 1)));
+      header.appendChild(button('text-link-btn', 'Edit', () => {
+        state.step = idx + 1;
+        renderApp();
+        scrollToEl('q-' + q.id);
+      }));
+      block.appendChild(header);
+      block.appendChild(el('p', 'review-q', q.text));
+
+      if (q.kind === 'text') {
+        const e = el('div', 'review-entry');
+        reviewText(e, q.label || 'Your answer', q.id + '.answer');
+        block.appendChild(e);
+      }
+
+      if (q.kind === 'items') {
+        (q.before || []).forEach(f => { const e = el('div', 'review-entry'); reviewText(e, f.label, q.id + '.' + f.key); block.appendChild(e); });
+        if (!state.items[q.id].length) block.appendChild(el('p', 'review-answer none', 'Nothing highlighted'));
+        state.items[q.id].forEach(item => {
+          const color = itemColor(q, item);
+          const e = el('div', 'review-entry');
+          e.style.setProperty('--c', COLORS[color].solid);
+          reviewQuote(e, item.sectionIds, color);
+          q.fields.forEach(f => {
+            const key = q.id + '.' + item.id + '.' + f.key;
+            if (f.type === 'chips') {
+              e.appendChild(el('span', 'small-label', f.label));
+              e.appendChild(el('p', 'review-answer' + (state.choice[key] ? '' : ' none'), state.choice[key] || 'Not chosen'));
+            } else reviewText(e, f.label, key);
+          });
+          block.appendChild(e);
+        });
+        (q.after || []).forEach(f => { const e = el('div', 'review-entry'); reviewText(e, f.label, q.id + '.' + f.key); block.appendChild(e); });
+      }
+
+      if (q.kind === 'compare') {
+        const grid = el('div', 'compare-grid');
+        q.sides.forEach(side => {
+          const c = COLORS[side.color];
+          const col = el('div', 'compare-col');
+          col.style.setProperty('--c', c.solid);
+          col.style.setProperty('--t', c.tint);
+          const h = el('h4'); h.appendChild(swatch(side.color)); h.appendChild(document.createTextNode(side.label)); col.appendChild(h);
+          state.sides[q.id][side.key].forEach(ids => col.appendChild(el('div', 'quote-chip', '“' + quoteText(ids) + '”')));
+          reviewText(col, side.prompt, q.id + '.side.' + side.key);
+          grid.appendChild(col);
+        });
+        block.appendChild(grid);
+        const e = el('div', 'review-entry');
+        reviewText(e, q.conclusion, q.id + '.conclusion');
+        block.appendChild(e);
+      }
+
+      if (q.kind === 'explanations') {
+        const list = state.expl[q.id];
+        list.forEach((ex, i) => {
+          const e = el('div', 'review-entry');
+          e.style.setProperty('--t', COLORS.yellow.tint);
+          reviewText(e, 'Explanation ' + (i + 1), q.id + '.expl.' + ex.id);
+          ex.quotes.forEach(ids => reviewQuote(e, ids, 'yellow'));
+          block.appendChild(e);
+        });
+        const bestIdx = list.findIndex(ex => ex.id === state.choice[q.id + '.best']);
+        const e = el('div', 'review-entry');
+        e.appendChild(el('span', 'small-label', 'Best supported'));
+        e.appendChild(el('p', 'review-answer' + (bestIdx < 0 ? ' none' : ''), bestIdx < 0 ? 'Not chosen' : 'Explanation ' + (bestIdx + 1)));
+        reviewText(e, 'What separates it from the others', q.id + '.why');
+        block.appendChild(e);
+      }
+
+      stepContainer.appendChild(block);
+    });
+
+    const saveError = el('p', 'form-error', '');
+    saveError.setAttribute('role', 'alert');
+    saveError.hidden = true;
+    stepContainer.appendChild(saveError);
+    const submitBtn = button('fia-btn', 'Submit response', () => submitResponse(submitBtn, saveError));
+    stepContainer.appendChild(submitBtn);
+  }
+
+  async function submitResponse(btn, errEl) {
+    if (rec) stopRecording();
+    state.elapsed = Math.round((Date.now() - state.sessionStart) / 1000);
+    let savedNote = 'Not set up (testing)';
+    if (SHEET_ENDPOINT) {
+      btn.disabled = true;
+      btn.textContent = 'Saving your response…';
+      errEl.hidden = true;
+      try {
+        const payload = await buildSheetPayload();
+        let res;
+        try {
+          res = await fetch(SHEET_ENDPOINT, { method: 'POST', body: JSON.stringify(payload) });
+        } catch (netErr) {
+          throw new Error('Couldn’t reach the Google script (' + netErr.message + ')');
+        }
+        const raw = await res.text();
+        let out;
+        try { out = JSON.parse(raw); }
+        catch (parseErr) {
+          throw new Error('Unexpected reply from the Google script (status ' + res.status + '): ' +
+            raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240));
+        }
+        if (!out.ok) throw new Error('Google script error: ' + (out.error || 'unknown'));
+        savedNote = 'Yes';
+      } catch (err) {
+        console.error('Saving failed:', err);
+        errEl.textContent = 'We couldn’t save your response. Check your internet connection and try again. Your answers are still here.\n\nDetails for the researcher: ' + err.message;
+        errEl.style.whiteSpace = 'pre-wrap';
+        errEl.hidden = false;
+        btn.disabled = false;
+        btn.textContent = 'Try again';
+        return;
+      }
+    }
+    showCompletion(savedNote);
+  }
+
+  function showCompletion(savedNote) {
+    document.getElementById('stat-participant').textContent = state.participant.code;
+    document.getElementById('stat-time').textContent = fmt(state.elapsed);
+    document.getElementById('stat-highlights').textContent = String(allQuoteGroups().length);
+    document.getElementById('stat-voice').textContent = String(Object.keys(state.voice).length);
+    document.getElementById('stat-saved').textContent = savedNote;
+    appMain.hidden = true;
+    screenComplete.hidden = false;
+    document.getElementById('download-json').hidden = !RESEARCHER;
+    window.scrollTo(0, 0);
+  }
+
+  /* =========================================================
+     Google Sheets payload
+     ========================================================= */
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(',')[1] || '');
+      r.onerror = () => reject(new Error('Could not read voice note'));
+      r.readAsDataURL(blob);
+    });
+  }
+
+  /* One row per response: code, name, time, the Q1 prediction, then each Q2 highlight
+     with what it tells the participant. Voice notes are sent as audio and linked by id. */
+  async function buildSheetPayload() {
+    const qs = questions();
+    const q1 = qs[0], q2 = qs[1];
+    const noteKey = q2.fields[0].key;
+    const voiceNotes = [];
+    async function voiceRef(key) {
+      const v = state.voice[key];
+      if (!v) return null;
+      if (v.blob) {
+        voiceNotes.push({ id: key, mime: v.mime || 'audio/webm', seconds: v.duration, data: await blobToBase64(v.blob) });
+        return { id: key, seconds: v.duration };
+      }
+      return { simulated: true, seconds: v.duration };
+    }
+    const q1Key = q1.id + '.answer';
+    const prediction = { text: (state.text[q1Key] || '').trim(), voice: await voiceRef(q1Key) };
+    const highlights = [];
+    const changes = reviewChanges();
+    for (const item of state.items[q2.id]) {
+      const key = q2.id + '.' + item.id + '.' + noteKey;
+      highlights.push({
+        quote: quoteText(item.sectionIds),
+        explanation: (state.text[key] || '').trim(),
+        voice: await voiceRef(key),
+        reviewStatus: changes ? changes.statusById[item.id] : ''
+      });
+    }
+    return {
+      format: 'two-question',
+      code: state.participant.code,
+      responseId: state.responseId,
+      submittedAt: new Date().toISOString(),
+      name: state.participant.name,
+      scenario: SCENARIO_ID + ' (' + PAGE_VERSION + ')',
+      version: PAGE_VERSION,
+      secondsSpent: state.elapsed,
+      prediction: prediction,
+      review: changes,
+      highlights: highlights,
+      voiceNotes: voiceNotes,
+      full: buildExport()
+    };
+  }
+
+  /* =========================================================
+     Export (researcher)
+     ========================================================= */
+  function answerOf(key) {
+    const v = state.voice[key];
+    return { text: (state.text[key] || '').trim(), voiceNote: v ? { seconds: v.duration, simulated: !!v.simulated } : null };
+  }
+  function buildExport() {
+    return {
+      participant: { name: state.participant.name, code: state.participant.code },
+      scenario: SCENARIO_ID + ' (' + PAGE_VERSION + ')',
+      version: PAGE_VERSION,
+      submittedAt: new Date().toISOString(),
+      secondsSpent: state.elapsed,
+      reviewChanges: reviewChanges(),
+      answers: questions().map(q => {
+        const out = { id: q.id, question: q.text };
+        if (q.kind === 'text') out.answer = answerOf(q.id + '.answer');
+        if (q.kind === 'items') {
+          (q.before || []).concat(q.after || []).forEach(f => { out[f.key] = answerOf(q.id + '.' + f.key); });
+          out.highlights = state.items[q.id].map(item => {
+            const h = { quote: quoteText(item.sectionIds), sectionIds: item.sectionIds };
+            q.fields.forEach(f => {
+              const key = q.id + '.' + item.id + '.' + f.key;
+              h[f.key] = f.type === 'chips' ? (state.choice[key] || null) : answerOf(key);
+            });
+            return h;
+          });
+        }
+        if (q.kind === 'compare') {
+          q.sides.forEach(side => {
+            out[side.label] = {
+              colour: COLORS[side.color].name,
+              highlights: state.sides[q.id][side.key].map(quoteText),
+              answer: answerOf(q.id + '.side.' + side.key)
+            };
+          });
+          out.conclusion = answerOf(q.id + '.conclusion');
+        }
+        if (q.kind === 'explanations') {
+          const list = state.expl[q.id];
+          out.explanations = list.map(ex => ({ answer: answerOf(q.id + '.expl.' + ex.id), support: ex.quotes.map(quoteText) }));
+          const bestIdx = list.findIndex(ex => ex.id === state.choice[q.id + '.best']);
+          out.bestSupported = bestIdx < 0 ? null : bestIdx + 1;
+          out.whatSeparatesIt = answerOf(q.id + '.why');
+        }
+        return out;
+      })
+    };
+  }
+  document.getElementById('download-json').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(buildExport(), null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'response-' + (state.participant.code || 'participant') + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  /* =========================================================
+     Intro
+     ========================================================= */
+  const INTRO_STEPS = [
+    ['Read a short story.', 'It is fictional. Someone describes a situation in their own words.'],
+    ['Answer two questions about it, one per page.', 'The second asks you to highlight parts of the story and explain your choice.'],
+    ['Check your answers and submit.', '']
+  ];
+
+  function renderIntroStep() {
+    const wrap = el('div', 'intro');
+    wrap.innerHTML =
+      '<div class="intro-kicker">Before you begin</div>' +
+      '<h1>Why we are asking you to read a story</h1>' +
+      '<p class="intro-lead">Social discernment is the ability to tell the difference between a communication problem and a deception strategy, between someone who means well and someone who does not. Everyone has some of it. Nobody has been able to measure it well.</p>' +
+      '<div class="intro-why">' +
+        '<p>We are building a test that does. This is an early version, and today we are testing the test, not you. We want to know whether the questions make sense, whether people can answer them, and whether the answers tell us anything. Your reading of the story is the data.</p>' +
+      '</div>' +
+      '<h3>What you will do</h3>' +
+      '<ol class="intro-steps">' + INTRO_STEPS.map(s => '<li><span><strong>' + s[0] + '</strong> ' + s[1] + '</span></li>').join('') + '</ol>' +
+      '<div class="intro-notes">' +
+        '<p>There are no right or wrong answers. Say what you notice and why. If you notice nothing in particular, say that; it is a valid answer and a useful one.</p>' +
+        '<p>It takes about 10 minutes. If anything in the story feels close to your own life, you can stop at any point.</p>' +
+      '</div>' +
+      '<form id="intro-form" class="intro-form" novalidate>' +
+        '<div class="field">' +
+          '<label class="field-label" for="short-name">Your first name and last initial</label>' +
+          '<input type="text" id="short-name" class="text-input" autocomplete="off" placeholder="e.g. Sam K" maxlength="40" aria-describedby="name-error">' +
+          '<p class="error" id="name-error" role="alert" hidden></p>' +
+        '</div>' +
+      '</form>' +
+      '<div class="intro-form">' +
+        '<h3>Your privacy and consent</h3>' +
+        '<p class="consent">This is a research project run by the Feminine Intelligence Agency with students from Northeastern University.</p>' +
+        '<p class="consent">Your answers are used only for this research. Nothing is saved until you submit. Responses are kept for 12 months at most. To have yours removed, email [contact email] with the code shown at the end.</p>' +
+        '<p class="consent">By continuing, you confirm you are 18 or older and agree to take part.</p>' +
+      '</div>';
+    stepContainer.appendChild(wrap);
+
+    const P = state.participant;
+    const nameInput = document.getElementById('short-name');
+    const nameErr = document.getElementById('name-error');
+    nameInput.value = P.name || '';
+    /* First name (can be more than one word) followed by a single-letter last initial, e.g. "Sam K" or "Mary Ann K." */
+    const NAME_RE = /^(.+?)\s+(\p{L})\.?$/u;
+    const cleanName = () => nameInput.value.trim().replace(/\s+/g, ' ');
+    const nameOk = () => NAME_RE.test(cleanName());
+
+    const startBtn = button('fia-btn', 'Start', () => {
+      const m = cleanName().match(NAME_RE);
+      if (!m) return;
+      P.name = m[1].charAt(0).toUpperCase() + m[1].slice(1) + ' ' + m[2].toUpperCase();
+      P.group = 'X';
+      P.code = String(state.responseId).replace(/-/g, '').slice(0, 8).toUpperCase();
+      initGroup();
+      state.sessionStart = Date.now();
+      state.step = 1;
+      renderApp();
+      window.scrollTo(0, 0);
+    });
+    stepContainer.appendChild(startBtn);
+    const startHint = el('p', 'continue-hint', 'Enter your first name and last initial, like Sam K, to start.');
+    startHint.id = 'start-hint';
+    startBtn.setAttribute('aria-describedby', 'start-hint');
+    stepContainer.appendChild(startHint);
+    const syncStart = () => { const ok = nameOk(); startBtn.disabled = !ok; startHint.hidden = ok; };
+    syncStart();
+    nameInput.addEventListener('input', () => {
+      nameErr.hidden = true;
+      nameInput.removeAttribute('aria-invalid');
+      syncStart();
+    });
+    nameInput.addEventListener('blur', () => {
+      if (cleanName() && !nameOk()) {
+        nameErr.textContent = 'Enter only your first name and the first letter of your last name, like Sam K.';
+        nameErr.hidden = false;
+        nameInput.setAttribute('aria-invalid', 'true');
+      }
+    });
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (!startBtn.disabled) startBtn.click(); } });
+  }
+
+
+  /* =========================================================
+     Main render
+     ========================================================= */
+  function renderProgress() {
+    const labels = ['Before you begin', 'Read and predict', 'Highlight the details', 'Review and submit'];
+    const current = state.step + 1;
+    progressText.textContent = 'Step ' + current + ' of 4: ' + labels[state.step];
+    document.querySelectorAll('.progress-seg').forEach(seg => {
+      seg.classList.toggle('filled', parseInt(seg.getAttribute('data-seg'), 10) <= current);
+    });
+  }
+
+  function renderApp() {
+    const y = window.scrollY;
+    const focusedId = document.activeElement && document.activeElement.id;
+    renderProgress();
+    const oldChooser = document.getElementById('chooser');
+    if (oldChooser) oldChooser.remove();
+    document.body.classList.remove('sheet-on');
+    stepContainer.innerHTML = '';
+    if (state.step === 0) renderIntroStep();
+    else if (state.step === 1 || state.step === 2) renderQuestionsStep();
+    else renderReviewStep();
+    document.body.classList.toggle('wide-page', pageIsAnnotate() && wideQuery.matches);
+    renderHlBar();
+    window.scrollTo(0, y);
+    if (focusedId) { const f = document.getElementById(focusedId); if (f && f.tagName === 'TEXTAREA') f.focus({ preventScroll: true }); }
+  }
+
+  researcherFab.addEventListener('click', () => {
+    if (rec) { rec.aborted = true; if (rec.stream) rec.stream.getTracks().forEach(t => t.stop()); rec = null; clearInterval(recTimer); }
+    Object.values(state.voice).forEach(v => { if (v.url) URL.revokeObjectURL(v.url); });
+    state = freshState();
+    screenComplete.hidden = true;
+    appMain.hidden = false;
+    renderApp();
+    window.scrollTo(0, 0);
+  });
+
+  /* Load the story, then start. */
+  (async function start() {
+    stepContainer.innerHTML = '<p class="instruction">Loading…</p>';
+    let data;
+    try {
+      data = await fetchScenarios();
+    } catch (e) {
+      console.error(e);
+      stepContainer.innerHTML = '';
+      stepContainer.appendChild(el('h2', null, 'The study couldn’t load'));
+      stepContainer.appendChild(el('p', null, 'Please check your internet connection and refresh the page. If it still doesn’t load, contact the person who sent you the link.'));
+      return;
+    }
+    const wanted = new URLSearchParams(window.location.search).get('s') || data.default;
+    const sc = (data.scenarios || []).find(x => String(x.id).toLowerCase() === String(wanted || '').toLowerCase());
+    if (!sc || !Array.isArray(sc.paragraphs) || !sc.paragraphs.length) {
+      stepContainer.innerHTML = '';
+      stepContainer.appendChild(el('h2', null, 'This link doesn’t match a story'));
+      stepContainer.appendChild(el('p', null, 'Please check that you copied the whole link, or contact the person who sent it to you.'));
+      return;
+    }
+    useScenario(sc);
+    renderApp();
+  })();
+</script>
+
+</body>
+</html>
